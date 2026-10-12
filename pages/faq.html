@@ -1,0 +1,28 @@
+<!-- title: FAQ -->
+<!-- description: Questions about OmaBoot? Live: does it change your Mac, which Macs it's for, T2 Macs, testing offline, and how it relates to Omarchy. -->
+<div class="faq">
+<h1>FAQ</h1>
+
+<h2 id="changes">Does it change my Mac?</h2>
+<p>No. Before anything else, OmaBoot? Live sets every internal disk read-only, so nothing can write to it. It installs nothing and doesn't write to the firmware, its settings or the startup disk choice.</p>
+<p>The only things it writes to are the stick it runs from, when you save a report there, and a stick or card you plug in for a port test. That test writes one temporary file to it and deletes it again.</p>
+
+<h2 id="which">Which Macs is it for?</h2>
+<p>Intel Macs, from 2006 to 2020. Omarchy needs a 64-bit processor, so the first Intel Macs of 2006, with a Core Solo or Core Duo, can't run it. Macs with Apple silicon (M1 and later) can't start it either.</p>
+<p>Some early Intel Macs have a 64-bit processor but 32-bit firmware. OmaBoot? Live hasn't been tried on one of those yet.</p>
+<!-- TODO(owner): update the 32-bit EFI sentence once one has been tried (LIVE-PLAN spike 5, parked). -->
+
+<h2 id="t2">What about T2 Macs?</h2>
+<p>The Apple T2 Security Chip is in most Intel Macs from 2018 to 2020 and in the iMac Pro. It runs Secure Boot and the internal SSD. The camera and speakers are connected through it, and on laptops the keyboard and trackpad too.</p>
+<p>A T2 Mac won't start from a USB stick until you allow it: start up in macOS Recovery, open <b>Startup Security Utility</b>, set Secure Boot to <b>No Security</b> and allow booting from external media. You can set it back afterwards.</p>
+<p>On T2 Macs, OmaBoot? Live starts the t2linux kernel (<code>linux-t2</code>), the kernel Omarchy installs on them. On other Macs it starts Omarchy's standard kernel.</p>
+<p>The T1 chip, in the 2016 and 2017 MacBook Pro with Touch Bar, runs the Touch Bar and Touch ID. It doesn't change how the Mac starts from USB.</p>
+
+<h2 id="offline">What if there's no network?</h2>
+<p>Choose to test offline. Everything runs the same. At the end, save the report to the stick and send it to {{DIO}} later, from any computer.</p>
+<!-- TODO(owner): say how a saved report gets sent later (an upload page on DoesItOmarchy.com? its address?) and link it here and on Privacy. -->
+
+<h2 id="official">Is it official Omarchy?</h2>
+<p>It runs real Omarchy: built from Omarchy's own ISO, with the same kernels and packages as an official Omarchy release. <a href="/verify/#why">How to check</a></p>
+<p>It's made by {{DIO}}, not by the Omarchy team. It runs its tests from the text console, without starting the Omarchy desktop, and it has no installer. To install Omarchy, get the official ISO from {{OMARCHY}}.</p>
+</div>

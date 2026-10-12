@@ -1,0 +1,42 @@
+<!-- title: Write the stick -->
+<!-- description: Write OmaBoot? Live to a USB stick on macOS, Linux or Windows, then boot an Intel Mac from it with the Option key. -->
+<h1>Write the stick</h1>
+<div class="say">{{BOOT}}<p>one stick, a few minutes. then hold Option.</p></div>
+<p class="lede">You need a USB stick of 4 GB or more. Everything on it is erased.</p>
+<p>The image is about 2 GB. The first time you save a report to the stick, OmaBoot? Live adds a small partition for reports in the space left over.</p>
+<p>Get the <code>.iso</code> from <a href="/download/">Download</a> and <a href="/verify/">verify it</a> first.</p>
+
+<h2 id="macos">macOS</h2>
+<p>Easiest: <a href="https://etcher.balena.io">balenaEtcher</a>. Choose <b>Flash from file</b>, then the stick, then <b>Flash</b>.</p>
+<p>Or in Terminal with <code>dd</code>. First find the stick's disk number:</p>
+<pre><code>diskutil list external</code></pre>
+<p>Check the size and name twice. <code>dd</code> overwrites whatever disk you give it, without asking. Then, with your number in place of <code>N</code>:</p>
+<pre><code>diskutil unmountDisk /dev/diskN
+sudo dd if={{ISO}} of=/dev/rdiskN bs=4m
+diskutil eject /dev/diskN</code></pre>
+<p>If macOS says it can't read the disk, choose <b>Ignore</b>.</p>
+
+<h2 id="linux">Linux</h2>
+<p>With GNOME Disks: pick the stick, open the menu, choose <b>Restore Disk Image…</b>, pick the <code>.iso</code> and start.</p>
+<p>Or with <code>dd</code>. Find the stick (<code>TRAN</code> says <code>usb</code>), and check it twice:</p>
+<pre><code>lsblk -o NAME,SIZE,MODEL,TRAN</code></pre>
+<pre><code>sudo dd if={{ISO}} of=/dev/sdX bs=4M status=progress oflag=sync</code></pre>
+<p>Use the whole disk (<code>/dev/sdX</code>), not a partition (<code>/dev/sdX1</code>).</p>
+
+<h2 id="windows">Windows</h2>
+<p>Use <a href="https://etcher.balena.io">balenaEtcher</a> as on macOS, or <a href="https://rufus.ie">Rufus</a>: pick the stick and the <code>.iso</code>, then <b>Start</b>. When Rufus asks how to write the image, choose <b>Write in DD Image mode</b>.</p>
+
+<h2 id="boot">Boot it</h2>
+<ol>
+  <li>Plug the stick straight into the Mac, not into a hub. On a laptop, plug in the charger too.</li>
+  <li>Turn the Mac on and hold <kbd>Option</kbd> (<kbd>Alt</kbd> on a non-Apple keyboard) until the startup disks appear.</li>
+  <li>Pick <b>OmaBoot? Live</b> and press <kbd>Return</kbd>. A short menu shows for 5 seconds, and its first entry starts the tests.</li>
+</ol>
+<p>This choice is for this start only. Next time, the Mac starts from its own disk as usual.</p>
+<ul>
+  <li>If the stick doesn't show up, try another USB port or another stick. Some older Macs don't list every stick.</li>
+  <li>If the Mac has a firmware password, it asks for it first.</li>
+  <li>Macs with the T2 chip (2018–2020) only start from a USB stick once you allow it. See <a href="/faq/#t2">T2 Macs</a>.</li>
+</ul>
+<p>When you're done, shut down and pull the stick.</p>
+<!-- TODO(owner): confirm the startup-disk name on a release build is "OmaBoot? Live" (dev builds carry a DEV tag) and that the first menu entry is the test with a 5 s countdown. -->

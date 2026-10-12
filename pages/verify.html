@@ -1,0 +1,36 @@
+<!-- title: Verify -->
+<!-- description: Check an OmaBoot? Live download: the SHA256 checksum, the signature on the checksums, and why the image is trustworthy. -->
+<h1>Verify the download</h1>
+<div class="say">{{BOOT}}<p>trust, but check. it takes a minute.</p></div>
+<p class="lede">Two checks. The checksum shows the file arrived whole. The signature shows the checksums come from us.</p>
+<p>Put these in one folder: the <code>.iso</code>, <code>SHA256SUMS</code> and <code>SHA256SUMS.sig</code> from the <a href="/download/">Download</a> page, and <a href="/allowed_signers"><code>allowed_signers</code></a>.</p>
+
+<h2 id="checksum">1. The checksum</h2>
+<p>Linux:</p>
+<pre><code>sha256sum -c --ignore-missing SHA256SUMS</code></pre>
+<p>macOS:</p>
+<pre><code>shasum -a 256 -c --ignore-missing SHA256SUMS</code></pre>
+<!-- TODO(owner): try the macOS shasum line on a Mac once (--ignore-missing needs a recent shasum; I couldn't test it here). -->
+
+<p>Both should print <code>{{ISO}}: OK</code>. On Windows, run <code>Get-FileHash {{ISO}}</code> in PowerShell and compare the hash with the line in <code>SHA256SUMS</code>.</p>
+
+<h2 id="signature">2. The signature</h2>
+<pre class="wrap"><code>ssh-keygen -Y verify -f allowed_signers -I omaboot -n omaboot-release -s SHA256SUMS.sig &lt; SHA256SUMS</code></pre>
+<p>It should print:</p>
+<pre class="wrap"><code>Good "omaboot-release" signature for omaboot with ED25519 key {{FP_RELEASE}}</code></pre>
+<p>Anything else: don't use the image. {{CONTACT Please [tell us].}}</p>
+<p class="quiet"><code>ssh-keygen</code> comes with macOS and Linux (OpenSSH 8.1 or newer). On Windows, run it in WSL or Git Bash.</p>
+
+<h3>The keys</h3>
+<p><a href="/allowed_signers"><code>allowed_signers</code></a> lists two keys. Their fingerprints:</p>
+{{SIGNERS}}
+<p>The same keys are in {{IMAGE_REPO}}, so you can compare them with a second source.</p>
+<h2 id="why">Why you can trust it</h2>
+<ul>
+  <li><b>Built in public.</b> Each release is built by GitHub Actions from a tagged commit of the public image repository: Omarchy's own ISO build at a named upstream commit, plus our changes as a short series of readable commits. Every release links its build log.</li>
+  <li><b>The official packages.</b> The build pins every package to the versions of the official Omarchy ISO of the same release, from the Arch Linux Archive, Omarchy's stable channel and t2linux. pacman checks each package's signature as it installs it.</li>
+  <li><b>A difference report.</b> Each release compares its packages with the official ISO and lists every file that differs, each one explained.</li>
+  <li><b>Little of our own.</b> The only binaries we build ourselves are the tester and a few patched kernel modules. Their build log shows that rebuilding them without our patches gives the official modules.</li>
+  <li><b>The key stays off the build machine.</b> The build never sees the signing key. The maintainer checks the build, then signs the checksums on their own computer.</li>
+</ul>
+<p>Read {{SOURCE}}.</p>
