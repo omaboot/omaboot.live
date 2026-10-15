@@ -1,0 +1,17 @@
+The words and art of omaboot.live are licensed under the Creative Commons Attribution 4.0
+International licence (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+Copyright (c) 2026 The OmaBoot? authors
+
+Words and art means:
+  - the copy: pages/*.html and the text in data/editions.json and data/tests.json;
+  - the pictures: assets/editions/ (the editions' startup-disk icons) and assets/screens/
+    (OmaBoot? Live's screens);
+  - the drawings site_build.py makes: Boot, the pixel wordmark and the favicon.
+
+Attribute them to "The OmaBoot? authors" with a link to https://omaboot.live.
+
+Everything else (site_build.py's code, site.css, tools/, the Makefile) is under the MIT licence
+in LICENSE. The JetBrains Mono fonts in assets/fonts/ are under the SIL Open Font License 1.1
+(assets/fonts/OFL.txt). data/allowed_signers holds the release keys' public halves.
