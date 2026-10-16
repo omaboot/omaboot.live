@@ -387,6 +387,11 @@ def document(cfg, slug, title, desc, body):
 <meta property="og:title" content="{html.escape(full_title)}">
 <meta property="og:description" content="{html.escape(desc)}">
 <meta property="og:url" content="{url}">
+<meta property="og:image" content="{cfg["site"]}/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Will Omarchy run on your Mac? OmaBoot? Live's quick results on a MacBook Air.">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 <body class="{cls}">
 <a class="skip" href="#main">Skip to content</a>
