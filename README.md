@@ -55,15 +55,11 @@ Add the release to the top of `data/releases.json`, with `"edition"` (`live`, `o
   "sha256": "<64 hex digits>",
   "sha256sums": "https://…/SHA256SUMS", "signature": "https://…/SHA256SUMS.sig",
   "packages": "https://…", "difference": "https://…", "build_log": "https://github.com/…/actions/runs/…",
-  "notes": "optional, one line",
-  "test_media": {
-    "file": {"url": "https://…/OMABOOT-TEST.BIN", "size": 33558528, "sha256": "<64 hex digits>"},
-    "disc": {"url": "https://…/omaboot-test.iso", "size": 2473984, "sha256": "<64 hex digits>"}
-  }
+  "notes": "optional, one line"
 }
 ```
 
-Every field except `notes` and `test_media` is required and every address must be `https://`. `test_media` is the release's test file and test disc (its `SHA256SUMS` lists both, when its boot-live has the tools that make them); without it, the Download page's Test media section says they come with the first release. Then make the release's page (`/releases/<version>/`, its difference report, with the numbers the Download page shows): download the release's `build-info.json`, `packages.tsv` and `diff-report.tsv.gz` from its GitHub release into a folder and run `python3 tools/release_report.py FOLDER`, which writes `data/reports/<version>.json` (public facts only; commit it with the release entry). Without it, the site links the published `difference` file instead. With a release present, `_redirects` also gets `/latest.iso`, `/SHA256SUMS` and `/SHA256SUMS.sig` pointing at the newest one.
+Every field except `notes` is required and every address must be `https://`. Then make the release's page (`/releases/<version>/`, its difference report, with the numbers the Download page shows): download the release's `build-info.json`, `packages.tsv` and `diff-report.tsv.gz` from its GitHub release into a folder and run `python3 tools/release_report.py FOLDER`, which writes `data/reports/<version>.json` (public facts only; commit it with the release entry). Without it, the site links the published `difference` file instead. With a release present, `_redirects` also gets `/latest.iso`, `/SHA256SUMS` and `/SHA256SUMS.sig` pointing at the newest one.
 
 ## Domains
 
