@@ -398,6 +398,27 @@ ul.vtiles span { font-size: 13px; line-height: 1.5; color: var(--quiet); }
 .method { max-width: 80ch; color: var(--quiet); margin-bottom: 8px; }
 .method b { color: var(--ink); font-weight: 400; }
 .method-links { font-size: 14px; }
+/* the test media: two cards, icon beside the text */
+.test-media { margin: 0 0 48px; scroll-margin-top: 16px; }
+.media { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; padding: 1px; margin: 0 0 14px; }
+@media (max-width: 900px) { .media { grid-template-columns: minmax(0, 1fr); } }
+.media-card { --ed: var(--accent-deep); --ed-hi: var(--accent); outline: 1px solid var(--line); background: var(--panel); padding: 22px; min-width: 0;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 18px; align-content: start; }
+.media-card > div { min-width: 0; }
+.media-icon { width: 40px; height: 40px; fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.media-card .role { margin: 4px 0 4px; font: 400 12px/1.3 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.media-card h3 { margin: 0 0 10px; font-size: 21px; letter-spacing: -0.02em; }
+.media-card p { color: var(--quiet); }
+ul.media-points { padding-left: 18px; color: var(--quiet); font-size: 14px; margin: 0 0 16px; }
+ul.media-points li { margin: 0 0 4px; }
+.media-card .os-rows { margin: 0 0 16px; }
+.media-card .os-row { grid-template-columns: 5em minmax(0, 1fr); }
+.media-card pre { background: var(--bg); }
+.os-row .os-say { margin: 9px 0 8px; font-size: 14px; }
+.media-card .get { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.media-card .get .quiet { font: 12px var(--mono); letter-spacing: 0.04em; }
+.media-card .tag { margin-top: 16px; }
+@media (max-width: 560px) { .media-card { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
 .earlier { margin: 0; font-size: 13px; color: var(--quiet); }
 .earlier .tag { display: inline; margin: 0 8px 0 0; }
 ul.plain-list { padding-left: 18px; color: var(--quiet); }
