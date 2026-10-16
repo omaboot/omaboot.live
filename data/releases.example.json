@@ -11,12 +11,6 @@
     "packages": "https://get.example.com/omaboot-live-4.0.4-1-packages.txt",
     "difference": "https://get.example.com/omaboot-live-4.0.4-1-difference.html",
     "build_log": "https://github.com/example/omaboot-iso/actions/runs/1",
-    "checks": {
-      "official_packages": 482,
-      "added": 14,
-      "files_differing": 8764,
-      "unexplained": 0
-    },
     "notes": "One line on what changed. Optional."
   }
 ]
