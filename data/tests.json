@@ -1,0 +1,945 @@
+{
+ "source": "boot-wip/reviews/criteria-review.html (boot-live 0.6.3 dev, aaa7947)",
+ "areas": [
+  {
+   "name": "Boot",
+   "note": "Whether the Mac starts the image at all."
+  },
+  {
+   "name": "Graphics and display",
+   "note": "The GPU, the built-in panel, brightness and external screens."
+  },
+  {
+   "name": "Input",
+   "note": "Keyboard, trackpad and the SMC-driven extras."
+  },
+  {
+   "name": "Power",
+   "note": "Battery, charger, sleep and the lid."
+  },
+  {
+   "name": "Audio",
+   "note": "Speakers, headphones, HDMI/DisplayPort audio and the microphone."
+  },
+  {
+   "name": "Camera",
+   "note": ""
+  },
+  {
+   "name": "Network",
+   "note": "Wi-Fi, Ethernet and Bluetooth, each a hands-on test. The quick pass only reports what it sees."
+  },
+  {
+   "name": "Ports",
+   "note": "USB, Thunderbolt, FireWire, the SD card slot and the optical drive. The USB, Thunderbolt and SD card tests share one engine that watches devices appear; the USB tests also read data from each disk."
+  },
+  {
+   "name": "Thermal",
+   "note": "One check: a 20-second load on every CPU thread, with the fans' minimum raised for its last 10 seconds."
+  }
+ ],
+ "criteria": [
+  {
+   "id": "boot.installer-efi64",
+   "also": "",
+   "title": "Stock installer boots via 64-bit EFI",
+   "area": "Boot",
+   "method": "Automatic",
+   "confidence": "high",
+   "tests": "Reads the EFI bitness the firmware handed the kernel (fw_platform_size). If OmaBoot? is running and the firmware is 64-bit EFI, the image booted through 64-bit EFI and GRUB.",
+   "decides": "Supported when the firmware is 64-bit EFI. Not tested (other) when the Mac booted in BIOS compatibility mode.",
+   "why": "If OmaBoot? runs, the image booted. It's one step removed from the stock installer it stands for: same kernel and packages, but our own boot menu, boot options and a smaller image.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The tester picked “safe graphics” (nomodeset) or another non-default entry, which the stock ISO's default entry doesn't use. The evidence names the kernel, not the entry."
+    },
+    {
+     "kind": "pass",
+     "text": "A difference between our image and the stock ISO (GRUB theme, kernel options such as the radeon panel fix, image size and USB load time) lets ours boot where the stock one hangs."
+    }
+   ]
+  },
+  {
+   "id": "boot.install",
+   "also": "",
+   "title": "Internal storage detected and installation completes",
+   "area": "Boot",
+   "method": "Automatic",
+   "confidence": "none",
+   "tests": "No install. Always not tested (live limit). The internal disks it finds go into the item's evidence (for example sda (sata)), so a reviewer sees whether the installer would find a disk.",
+   "decides": "Always not tested.",
+   "why": "It never claims an install.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "boot.installer-efi32",
+   "also": "",
+   "title": "Stock installer boots via 32-bit EFI",
+   "area": "Boot",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Reported as not tested (live limit) on 32-bit EFI Macs.",
+   "decides": "—",
+   "why": "The live image is 64-bit EFI only.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "boot.power-cycle",
+   "also": "",
+   "title": "Survives a power cycle",
+   "area": "Boot",
+   "method": "Automatic (never decides)",
+   "confidence": "none",
+   "tests": "Its own quick-pass line, “a live boot can't restart an installed system”, so the quick pass lists all three Boot criteria the summary counts. Always not tested (live limit).",
+   "decides": "—",
+   "why": "Needs an installed system.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "graphics.integrated",
+   "also": "graphics.discrete",
+   "title": "Integrated GPU acceleration",
+   "area": "Graphics and display",
+   "method": "Automatic",
+   "confidence": "high",
+   "tests": "Runs the egl-probe helper on each GPU's render node: an offscreen test frame with one pixel checked, the OpenGL ES version and renderer, then a 1080p compositor-like load for about 10 s, timed in one-second windows. Around it, the kernel log is read before and after, and the internal panel's vblanks are counted for about a second on the CRTC that drives it (read only: no DRM master, no modeset). 45 s limit (90 s when Mesa loads from the stick).",
+   "decides": "Failed: software rendering (llvmpipe), no context, ES below 3.0, no driver or no render node. Partial: a wrong test frame; a slowest second under 30 fps (under 10 counts as stalled); the load didn't run; no vblanks on the panel's pipe, or vblanks under 50 % or over 150 % of the mode's refresh; or any GPU error the kernel logged during the test, quoted. Supported: none of these. On a timeout, failed if the kernel log shows a GPU lockup, otherwise uncertain.",
+   "why": "Software fallback, a stall, a dead panel pipe and GPU faults during the test all stop a pass now. It still renders offscreen for seconds, so Hyprland's page flips and long use aren't tested.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 192.5 fps in the slowest second, 60 vblanks in 1.01 s at a 59.8 Hz mode."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The panel's pipe runs (vblanks counted) but page flips of GPU-rendered frames fail under Hyprland."
+    },
+    {
+     "kind": "pass",
+     "text": "The GPU hangs only after minutes of use; the load runs about 10 s."
+    },
+    {
+     "kind": "pass",
+     "text": "With two GPUs of the same kind, only the boot GPU's is judged."
+    },
+    {
+     "kind": "fail",
+     "text": "A throttled or slow CPU drags the slowest second under 30 fps on a GPU that's fine."
+    },
+    {
+     "kind": "none",
+     "text": "Mesa loading slowly from a USB 2 stick runs into the time limit (the reason it is 90 s)."
+    }
+   ]
+  },
+  {
+   "id": "graphics.power-down",
+   "also": "",
+   "title": "Inactive GPU powers down correctly",
+   "area": "Graphics and display",
+   "method": "Automatic",
+   "confidence": "medium",
+   "tests": "On Macs with two GPUs, picks the one not marked as the boot VGA device and watches its runtime power state for 12 s.",
+   "decides": "Supported when it reads “suspended” within 12 s. Failed when it stays active or has no runtime power state.",
+   "why": "Runtime PM state is the right signal, but 12 s right after the GPU test may be too short, and “suspended” in sysfs doesn't prove the hardware is switched off.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "The GPU was just used by the graphics probe and its autosuspend delay is longer than 12 s."
+    },
+    {
+     "kind": "fail",
+     "text": "The live image leaves runtime PM on “on” where an installed system (or a later udev rule) sets “auto”. The evidence names the control setting."
+    },
+    {
+     "kind": "pass",
+     "text": "Runtime PM says suspended but gmux still powers the GPU."
+    },
+    {
+     "kind": "fail",
+     "text": "The boot VGA guess picks the wrong GPU on a gmux Mac."
+    }
+   ]
+  },
+  {
+   "id": "graphics.switching",
+   "also": "",
+   "title": "Integrated/discrete display switching",
+   "area": "Graphics and display",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Reported as not tested (not in profile) on Macs with two GPUs.",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "graphics.external-display",
+   "also": "",
+   "title": "External display output",
+   "area": "Graphics and display",
+   "method": "Hands-on · challenge",
+   "confidence": "high",
+   "tests": "Watches the external connectors (DisplayPort, HDMI, DVI, VGA) for one to connect and reads its EDID and modes. Then it puts a test card on that output itself, by KMS on a CRTC of its own: a dark card with a white border and a 3-digit code. The code shows on the monitor only, never on the Mac's screen. The tester types it; a miss gets one more try with a new code that differs in at least two digits.",
+   "decides": "Supported: connected with an EDID and modes, the card went up, and the code typed right. Partial: the code typed right on a connector with no EDID; or detected and the tester sees no picture or a wrong one. Failed: nothing connects (“Nothing shows up”, offered after 15 s). Not tested (uncertain): a wrong code twice, or the card couldn't go up and the tester only says they see the mirrored console.",
+   "why": "A blind guess passes about 2 times in 900, and the picture on the monitor is drawn for it, not mirrored.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The criterion covers every built-in video output; only the port the monitor went into is tested (its connector is named in the evidence)."
+    },
+    {
+     "kind": "fail",
+     "text": "An adapter (Mini DisplayPort to HDMI or VGA) gives no EDID, so a good picture comes out partial."
+    },
+    {
+     "kind": "none",
+     "text": "Two typos end it as not tested (uncertain)."
+    }
+   ]
+  },
+  {
+   "id": "display.native-resolution",
+   "also": "",
+   "title": "Internal display at native resolution",
+   "area": "Graphics and display",
+   "method": "Automatic + hands-on · challenge",
+   "confidence": "high",
+   "tests": "The quick pass finds the internal panel connector (eDP/LVDS/DSI), its preferred mode, the console framebuffer size and the panel size in the catalog. A hands-on test of its own then draws a black-and-white test pattern, one of six, and the tester names it; then a new one. Two rounds, no retry.",
+   "decides": "Quick pass: supported at the preferred mode on a KMS driver, not below the catalog's panel size; partial below the preferred mode or the panel; failed when the panel isn't driven; not tested with nomodeset. Hands-on: both patterns named keeps the verdict (picture confirmed, a challenge); a wrong name or “The picture is wrong” turns supported into partial; a skip keeps the quick pass's verdict, noted as not checked.",
+   "why": "The kernel's facts give the mode; naming two patterns shows the picture is whole. A blind guess passes 1 in 30.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): flat stripes, then nested boxes, both named."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The tester skips the pattern test, so a split or garbled picture keeps the quick pass's supported (the evidence says not checked)."
+    },
+    {
+     "kind": "fail",
+     "text": "A Mac missing from the catalog's panel list falls back to the EDID, which on 5K iMacs asks for less than the panel."
+    }
+   ]
+  },
+  {
+   "id": "display.brightness",
+   "also": "",
+   "title": "Display brightness control",
+   "area": "Graphics and display",
+   "method": "Hands-on · observed",
+   "confidence": "high",
+   "tests": "Picks a backlight device (firmware type first, then platform, then raw), steps it to about 15 % and to full, 1.4 s each, puts it back, and asks whether the screen dimmed and brightened. The driver's read-back goes in the evidence.",
+   "decides": "Supported: every step seen. Partial: only some steps. Failed: no change seen, no backlight device, or the kernel refuses the write.",
+   "why": "You see the panel, so a “no” is reliable. A “yes” is your plain answer, one of the few that can give a pass.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): acpi_video0, every step seen, 3 of 3 levels read back."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The firmware device (acpi_video0) works but Omarchy's brightness keys drive another (intel_backlight), or the reverse."
+    },
+    {
+     "kind": "pass",
+     "text": "The tester answers “yes” without watching."
+    },
+    {
+     "kind": "fail",
+     "text": "An iMac without a backlight class device fails though the panel works."
+    }
+   ]
+  },
+  {
+   "id": "input.keyboard",
+   "also": "",
+   "title": "Built-in keyboard and function keys",
+   "area": "Input",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Draws the Mac's keyboard (US ANSI, with model variants), grabs the built-in keyboard and lights each key as it's pressed. The top row counts as F-keys or media keys according to the keyboard's fn table. The power key and Touch ID are left out.",
+   "decides": "Supported: every drawn key registered. Partial: some keys, and the tester says the dark ones don't respond. Failed: no keyboard device, or nothing registers.",
+   "why": "Key events from the kernel are direct proof. Only the US layout is drawn.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 77 of 77 keys."
+   ],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "An ISO or JIS keyboard has keys the US drawing lacks or places differently; the tester gives up on keys that do work."
+    },
+    {
+     "kind": "fail",
+     "text": "The tester stops early on a key they find awkward and calls the rest dead."
+    }
+   ]
+  },
+  {
+   "id": "input.trackpad",
+   "also": "",
+   "title": "Trackpad and multi-touch",
+   "area": "Input",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Reads the built-in trackpad's raw touch events and ticks off: four corners, click, two-finger click, two-finger scroll up and down, pinch, three-finger swipe. Older pads without multi-touch stop after scroll; a pad running as a plain mouse gets move and click only.",
+   "decides": "Supported: all steps. Partial: mouse mode only, or the tester says the rest doesn't work. Failed: no trackpad or nothing registers.",
+   "why": "Raw multi-touch events prove the driver. Hyprland sees them through libinput, which can still misbehave (jumpy pointer, palm detection) where raw events look fine.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): every step, up to 3 fingers."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "Gestures register raw but feel wrong in Hyprland (jitter, missed taps)."
+    },
+    {
+     "kind": "fail",
+     "text": "Thresholds (15 % scroll, 20 % pinch and swipe) are hard to reach on very small pads for some people."
+    }
+   ]
+  },
+  {
+   "id": "input.force-touch",
+   "also": "",
+   "title": "Force Touch click and pressure sensing",
+   "area": "Input",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Waits for a click, then asks for a firm press and watches the multi-touch pressure axis (ABS_MT_PRESSURE; the single-touch axis doesn't count, bcm5974 makes it from contact size).",
+   "decides": "Supported: click and pressure past half its range. Partial: click works but there's no pressure axis (what Linux drivers give today), or the tester says pressure didn't rise. Failed: no trackpad or clicks do nothing.",
+   "why": "It matches what Linux supports today and says so. Not yet run on a Force Touch Mac.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "A pad whose pressure scale tops out lower never reaches 50 %."
+    }
+   ]
+  },
+  {
+   "id": "input.keyboard-backlight",
+   "also": "",
+   "title": "Keyboard backlight",
+   "area": "Input",
+   "method": "Hands-on · challenge + observed",
+   "confidence": "high",
+   "tests": "Two hands-on tests on every Mac with the LED. Blinks: the light goes dark, blinks a random 2 to 4 times at full (0.8 s on, 0.8 s off) and stays dark until the tester picks the count; nothing on screen follows the blinks. Keys: the tester presses the key-light keys (KEY_KBDILLUMUP/DOWN, F6 and F5 on most Macs); each press moves the LED a tenth of its range, as omarchy-brightness-keyboard does. Writes go through the kernel's LED class (approved) and the light is put back. The quick pass only notes the LED (uncertain).",
+   "decides": "Blinks: supported for the right count (challenge); partial for a wrong count twice; failed for no LED, refused writes, or no change seen. Keys: supported when brighter and dimmer each changed the LED and the tester saw the light follow; partial when only one did; failed when neither did, or the LED moved and the light didn't. Merged: supported only when both are, failed only when both are, else partial; a skipped one gives way to the other. Not tested (live limit) without the applesmc fix or the install kernel.",
+   "why": "A count the tester can't guess proves the light, and the keys prove the path Omarchy binds.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 4 blinks counted, both keys moved the LED, merged supported."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The keys' “the light followed” is a plain answer; the LED's read-back backs it, the blinks are the challenge."
+    },
+    {
+     "kind": "fail",
+     "text": "On a keyboard set to F-keys first, F6 without fn moves nothing, as on Omarchy; the screen says to hold fn, but a tester who misses that answers that the keys do nothing."
+    }
+   ]
+  },
+  {
+   "id": "input.ambient-light-sensor",
+   "also": "",
+   "title": "Ambient light sensor",
+   "area": "Input",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "The tester covers the sensor for three seconds, with a countdown, then uncovers it. The tool polls applesmc's light reading five times a second (its two values summed). The uncovered level is the average over the first 1.5 s; under 3, the room is too dark and the tester shines a phone's flashlight on it instead. The quick pass only notes a reading (uncertain).",
+   "decides": "Supported: the level drops by at least half and at least 2 counts (with the flashlight: rises by its own level and at least 3), holds 3 s, and comes back at least halfway and 2 counts once uncovered. Partial: followed the cover but didn't come back within 12 s, or never moved and the tester says they covered it. Failed: no reading, or it stopped during the test. Not tested (live limit) without the applesmc fix or the install kernel.",
+   "why": "A stuck value can't follow a hand.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 8 dropped to 1, held 3.1 s, back to 8."
+   ],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "The tester covers the wrong spot and answers that nothing changed: partial for a working sensor."
+    }
+   ]
+  },
+  {
+   "id": "input.touch-bar",
+   "also": "",
+   "title": "Touch Bar",
+   "area": "Input",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Not tested (live limit).",
+   "decides": "—",
+   "why": "Needs the installed system's T2 drivers and configuration.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "input.touch-id",
+   "also": "",
+   "title": "Touch ID",
+   "area": "Input",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Not tested (live limit).",
+   "decides": "—",
+   "why": "No Linux support to test.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "bridge.touch-bar-camera",
+   "also": "",
+   "title": "T2 bridge: Touch Bar and camera",
+   "area": "Input",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Not tested (live limit) on T2 MacBook Pros.",
+   "decides": "—",
+   "why": "Needs the installed system's T2 bridge setup.",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "input.ir-receiver",
+   "also": "",
+   "title": "IR receiver",
+   "area": "Input",
+   "method": "None",
+   "confidence": "none",
+   "tests": "No test. Not tested (not in profile).",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "power.battery-status",
+   "also": "",
+   "title": "Battery status and charge reporting",
+   "area": "Power",
+   "method": "Automatic",
+   "confidence": "high",
+   "tests": "Reads the battery's power-supply entry: present, status, capacity or charge now/full, design capacity, cycle count. Peripheral batteries are ignored.",
+   "decides": "Supported: a kernel status and a sane charge level (0–100 %, or now no more than 10 % over full). Partial: one of the two missing or out of range. Failed: no battery or not present.",
+   "why": "Straight from the kernel, and it's what the Waybar battery reads.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): confirmed."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "Values that read but never update (stale firmware data)."
+    }
+   ]
+  },
+  {
+   "id": "power.charging",
+   "also": "",
+   "title": "AC power and battery charging",
+   "area": "Power",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Asks to unplug the charger, then plug it back; watches the adapter's online flag and the battery status (up to 20 s to follow).",
+   "decides": "Supported: adapter off and on, battery discharging while unplugged and charging (or full, or “not charging” at 90 %+) after. Partial: one side didn't follow. Failed: the tester says nothing changed.",
+   "why": "Both sides are kernel facts, and full batteries are handled.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): Full, Discharging, Full."
+   ],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "Some batteries take longer than 20 s to report charging."
+    }
+   ]
+  },
+  {
+   "id": "power.sleep-wake",
+   "also": "",
+   "title": "Sleep and wake",
+   "area": "Power",
+   "method": "Hands-on · automatic + challenge",
+   "confidence": "high",
+   "tests": "Checks the network first (10 s, or 30 s when the run was online), sets the RTC alarm 20 s ahead and writes “mem” to /sys/power/state; on Macs whose NVMe drive needs it, d3cold_allowed is set to 0 first, as Omarchy's installer does. It records the wake sources and ACPI events, then waits up to 30 s for every network interface, USB device, input device and connected display, and for the network as the status line has it, held 3 s. Woken early by the lid's own wake with the lid open, it naps again with OmaBoot?'s lid wake fix. Then a 3-digit code shows large and the tester types it.",
+   "decides": "Failed: the kernel refused, or it slept under 1 s. Partial: woke early by something else, woke long after the alarm, or something didn't come back. Woken early by the lid, then on time with the fix: supported with the lid wake fix (FIX tag). Supported: slept at least 75 % of the 20 s and everything came back. The code: typed right keeps the verdict; no answer in 60 s, or a wrong code twice, turns supported into partial; a skip turns it into not tested (uncertain).",
+   "why": "A black screen can't show the code, so a Mac that never really came back can't pass.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): woken early by the lid, then 19.5 s of 20 on the RTC alarm with the lid wake fix, everything back, the code typed."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "Sleeping through /sys/power/state works where systemd's suspend path wouldn't. To narrow this, the test applies the installed path's own fixes (the lid wake, the NVMe setting) itself."
+    },
+    {
+     "kind": "fail",
+     "text": "Something plugged in (an adapter, a phone) wakes it early: the cause is recorded, but only the lid gets a second nap."
+    },
+    {
+     "kind": "none",
+     "text": "No RTC alarm: not tested."
+    }
+   ]
+  },
+  {
+   "id": "power.lid",
+   "also": "",
+   "title": "Lid close sleep and lid open wake",
+   "area": "Power",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Watches the lid switch. One second after the lid closes it suspends the Mac (holding logind back) with a 60 s backstop alarm; opening the lid should wake it. It reads which wake sources fired, then waits up to 30 s for every device and the network (the status line's rule, held 3 s) to come back.",
+   "decides": "Supported: slept on close, woke on open before the backstop by the lid's own wake source (PNP0C0D fired; no RTC alarm, no PCI device), and everything came back. Partial: no sleep, only the backstop woke it, the lid's source didn't fire, or something didn't come back. Failed: no lid switch, or the switch reported nothing. Woken by the backstop with the lid still closed: try again.",
+   "why": "The wake is traced to the lid itself, not timed. No code is typed after the lid wake; the sleep test right after it checks the screen.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): woken by LID0 with no RTC alarm."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The screen stays black after the lid wake; nothing asks the tester to prove it came back."
+    },
+    {
+     "kind": "pass",
+     "text": "Where the wake sources can't be read, the lid wake is inferred from timing, and the evidence says so."
+    }
+   ]
+  },
+  {
+   "id": "audio.speakers",
+   "also": "",
+   "title": "Built-in speakers",
+   "area": "Audio",
+   "method": "Hands-on · challenge",
+   "confidence": "high",
+   "tests": "Plays 2–5 beeps (700 Hz) on the left channel, then the right, and asks how many; then a spoken word picked from four. A miss gets one retry with a new count or word. Mixer saved, set to fixed levels, restored.",
+   "decides": "Supported: both counts right; the word right too makes it a challenge, a skipped word leaves it observed. Partial: one side silent, or the word missed twice. Failed: nothing heard. Uncertain: a side missed twice with sound on both.",
+   "why": "A challenge the tester can't guess. It doesn't judge sound quality, and on Macs with separate woofers it doesn't test them on their own.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): both speakers, the word picked right."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "Sound is crackly or tinny (woofers silent) but beeps are countable."
+    },
+    {
+     "kind": "none",
+     "text": "A loud room or a hard-of-hearing tester gets uncertain."
+    }
+   ]
+  },
+  {
+   "id": "audio.headphone",
+   "also": "",
+   "title": "Headphone / analog audio output",
+   "area": "Audio",
+   "method": "Hands-on · challenge",
+   "confidence": "high",
+   "tests": "Waits for the headphone jack control to report headphones, then beeps left and right quietly and asks for counts, then whether the speakers stayed quiet. While the headphones play, the speaker pin's state and the speaker switches are read for the evidence.",
+   "decides": "Supported: the jack reported them, both counts right, and the speakers stayed quiet. Partial: the speakers played too, one side silent, or the jack never reported them. Failed: nothing heard, or no jack report 20 s after the tester says they're in.",
+   "why": "The counts prove the headphones play; the question keeps a pass from hiding speakers that play too, the Cirrus codec bug.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): speaker pin output off, Auto-Mute on, the tester said quiet."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The tester says the speakers stayed quiet without listening for them; the pin state that would show it is evidence only."
+    }
+   ]
+  },
+  {
+   "id": "audio.display-out",
+   "also": "",
+   "title": "Audio over HDMI / DisplayPort",
+   "area": "Audio",
+   "method": "Hands-on · challenge",
+   "confidence": "high",
+   "tests": "Right after the external display test, reads the monitor's ELD, plays beeps to the HDMI/DP device whose jack says plugged (or to all of them when none says) and asks for the count.",
+   "decides": "Supported: valid ELD and right count. Partial: right count, no ELD. Failed: nothing heard or no HDMI/DP device. Uncertain: the count missed twice.",
+   "why": "You answer a challenge, and the check of the monitor's audio data (ELD) mirrors what PipeWire needs.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "A monitor's speakers are muted or off, so the tester hears nothing."
+    }
+   ]
+  },
+  {
+   "id": "audio.microphone",
+   "also": "",
+   "title": "Built-in microphone",
+   "area": "Audio",
+   "method": "Hands-on · automatic (claps: challenge)",
+   "confidence": "high",
+   "tests": "Records the built-in mic at 16 kHz and measures the room, including its own level at each note's frequency. Then it plays five soft notes through the speakers, D5 E5 C5 C4 G4, and looks for each in the recording with a Goertzel filter; then a silent control round as long as a note. If a note can't play or isn't found, or the control round hears one, it asks for 2 to 4 claps and counts them, one retry. Headphones have to come out first.",
+   "decides": "Supported: every note found and the control round silent (automatic), or the claps counted right (challenge). A note is found in 8 or more 50 ms windows at 10 dB over the frequencies around it and over the room's level there, above −75 dBFS, and only where it's the loudest of the five. Only C4 (262 Hz) may go unheard: laptop speakers are weak under about 300 Hz. Partial: neither, but the level rose 6 dB over the room and above −60 dBFS. Failed: no capture device, an error, digital silence, or no rise and the tester says they clapped.",
+   "why": "The mic has to hear the notes the test played, and a silent round catches a detector that always says yes, so a key click or a bump can't pass.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): three notes and the silent round."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "A codec that mixes its own output into the capture path would hand the notes to a dead mic. Macs' Cirrus codecs have no such path, and the capture mixer is set to the mic."
+    },
+    {
+     "kind": "fail",
+     "text": "Claps have to be 15 dB over the room's peaks: a soft clapper in a noisy room, after the notes were missed, gets partial."
+    }
+   ]
+  },
+  {
+   "id": "audio.headset-mic",
+   "also": "",
+   "title": "Headset microphone",
+   "area": "Audio",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Left out of the report: the hardware IDs can't say which Macs have a headset jack.",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "audio.line-in",
+   "also": "",
+   "title": "Line in",
+   "area": "Audio",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Left out of the report (can't be told from the hardware IDs).",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "audio.optical-out",
+   "also": "",
+   "title": "Optical digital audio out",
+   "area": "Audio",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Left out of the report.",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "audio.optical-in",
+   "also": "",
+   "title": "Optical digital audio in",
+   "area": "Audio",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Left out of the report.",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "camera.builtin",
+   "also": "",
+   "title": "Built-in webcam",
+   "area": "Camera",
+   "method": "Hands-on · observed",
+   "confidence": "high",
+   "tests": "Opens the built-in camera with V4L2, shows a small live preview and asks whether the tester sees themself move. With no camera device it fails at once and names the missing driver (FaceTime HD PCIe, iSight firmware, T1).",
+   "decides": "Supported: the tester sees themself move. Partial: frames but a wrong picture. Failed: no device, no stream, no frame within 6 s, or a black picture.",
+   "why": "Mirrors stock Omarchy, which has no FaceTime HD driver either. The preview is small and grey, but movement is easy to judge. Still a plain answer.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 14–16 fps."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "A camera that streams but with heavily wrong colour isn't caught in a grey preview."
+    }
+   ]
+  },
+  {
+   "id": "network.wifi",
+   "also": "",
+   "title": "Wi-Fi",
+   "area": "Network",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "A hands-on test of its own, whatever the Network screen did. The tester picks a network from a scan and types its password (a network already joined is used as it is). Over the Mac's own card alone (a socket bound to it) it runs the boot.watch test: an echo, 64 KB and 256 KB down and 64 KB up, every byte checked, then a 1 MB speed part cut at 2 s. The card's byte counters must grow by at least what moved. The quick pass only reports the card and its scan, never a pass.",
+   "decides": "Supported: at least 256 KB down and 64 KB up verified over the Mac's own card, counters agreeing. Partial: joined but the data won't flow while boot.watch answers; the card is the only link and nothing worked over it; or “It won't join”. Failed: no interface, a scan failing twice, or none heard where the tester says networks are in range. Not tested (uncertain): a USB dongle, left the network, a sign-in page, counters short. Not tested (other): boot.watch answered over no connection, was busy, or the clock is off. BCM4331/BCM4360: not tested (live limit).",
+   "why": "Data verified both ways over the card proves it joins and carries traffic.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): BCM43224 on brcmsmac, 1.3 MB down verified at 7.0 MB/s, 64 KB up, counters +1512 KB."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The connection drops after a few seconds of traffic, after the test ends (b43, brcmsmac)."
+    },
+    {
+     "kind": "fail",
+     "text": "On the only link, with boot.watch and the site both unreachable (a network with no way out), nothing worked over the card: partial."
+    },
+    {
+     "kind": "none",
+     "text": "boot.watch down while the site's catalog refresh worked over the card: not tested (other)."
+    }
+   ]
+  },
+  {
+   "id": "network.ethernet",
+   "also": "",
+   "title": "Ethernet",
+   "area": "Network",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "A hands-on test of its own. The tester plugs a cable from a router or switch into the Mac's own port (a port the Network screen turned off comes back on). It waits for a link and an IPv4 address (20 s), then runs the same boot.watch test over that interface alone, with the counters cross-check. An adapter on USB or Thunderbolt is shown but decides nothing: only the built-in port counts. The quick pass only reports the port and its link.",
+   "decides": "Supported: an address, at least 256 KB down and 64 KB up verified over the port, counters agreeing. Partial: an address but the data won't flow while boot.watch answers. Failed: no driver or no interface, or “It's plugged in, no link” (offered after 10 s). Not tested (uncertain): a link without an address, the only link with nothing working over it, a sign-in page, counters short. Not tested (other): boot.watch down or busy, or the clock off. No equipment: skipped.",
+   "why": "Data checked both ways over the port proves traffic flows, not only a link. USB and Thunderbolt Ethernet adapters don't count.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "A bad cable or a dead switch port reads as “It's plugged in, no link”: failed."
+    },
+    {
+     "kind": "none",
+     "text": "The only link with nothing working over it may be a network with no way out, so it's not tested (uncertain), not partial."
+    }
+   ]
+  },
+  {
+   "id": "network.bluetooth",
+   "also": "",
+   "title": "Bluetooth",
+   "area": "Network",
+   "method": "Hands-on · challenge",
+   "confidence": "medium",
+   "tests": "The tester opens their phone's Bluetooth settings first (a phone shows its name only while that screen is open), or puts another device in pairing mode. The tool powers the adapter on through the kernel's management socket (unblocking it, Low Energy on), scans classic and LE, and lists what it hears, nearest first, 8 at a time (“the 8 nearest of N”); the list only grows at its end. The tester picks their own device. Names show on screen, never in the report; the named and unnamed counts go in.",
+   "decides": "Supported: powered on, the scan found devices, and the tester picked their own (challenge). Partial: heard nothing in 30 s while the tester says a device was discoverable, or “Mine isn't listed”. Failed: no adapter, hard-blocked, won't power on or discover, or it went away. Not tested (other): no management socket.",
+   "why": "Picking their own device closes the stranger route. Nothing is paired, so a radio that scans but can't pair or stream still passes.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 18 devices heard, 5 named, the tester's phone picked from the 9 listed."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "Pairing or headphone audio (A2DP) fails though discovery works (known on some Broadcom adapters)."
+    }
+   ]
+  },
+  {
+   "id": "ports.usb-a",
+   "also": "",
+   "title": "USB-A ports",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Watches USB devices appear port by port; with a port map it rings one drawn port at a time. Each device gets a check: a disk is read raw and read-only (O_DIRECT, never mounted, never written), 32 MiB twice and compared, or for the OmaBoot? stick checked against the image's chunk checksums; a mouse or keyboard has to send a move or a key within 20 s; anything else counts by enumerating. The stick's port and a tethered phone's count since power-on. Booted with copytoram, the stick itself moves from port to port and gets the verified read on each.",
+   "decides": "Supported: at least one port worked, none marked dead, and no port's read failed. Partial: ports marked dead, or a read that errored, came up short, made no progress for 5 s, took over 150 s or didn't match, with nothing reading fine on that port after. Failed: nothing seen and a port marked dead.",
+   "why": "Enumeration on a ringed port proves the data lines; a verified read proves data moves.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "A device that can't be read (a phone charging, a hub) counts its port as working on enumeration alone; the evidence says which ports moved data."
+    },
+    {
+     "kind": "pass",
+     "text": "A USB 3 device at USB 2 speed on a USB 3 port (or reading under 40 MB/s at 5 Gb/s) is a finding in the evidence, not a verdict."
+    },
+    {
+     "kind": "fail",
+     "text": "Pre-2012 Macs hand USB 1.1 devices to a companion controller, so one hole can look like two ports; with a map, the mouse is taken for the next port asked for."
+    }
+   ]
+  },
+  {
+   "id": "ports.usb-c",
+   "also": "",
+   "title": "USB-C / Thunderbolt 3 ports (USB data)",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Same engine and the same reads as USB-A, counting only devices on the Thunderbolt 3 controller's USB buses. Alpine Ridge may power up only when something is plugged in.",
+   "decides": "As USB-A.",
+   "why": "Same strengths; the port kind comes from the controller, not the connector. Not yet run on a USB-C Mac.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "As USB-A: enumeration alone counts, and a slow link is only a finding."
+    },
+    {
+     "kind": "none",
+     "text": "The controller powers up late and the tester gives up first."
+    }
+   ]
+  },
+  {
+   "id": "ports.thunderbolt",
+   "also": "",
+   "title": "Thunderbolt devices (storage, docks, hotplug)",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Watches the Thunderbolt bus and PCI devices. A newly plugged device (or one unplugged and replugged) must be authorized (“Let it in” writes authorized=1, as boltctl would) and bring up a PCI device behind it. With a port map, each Thunderbolt port is asked for in turn. When the run's own connection goes through the device (a Thunderbolt Ethernet adapter), the result waits up to 30 s for the network to come back through it, as the status line has it.",
+   "decides": "Supported: authorized and a new non-bridge PCI device; with several ports, every port. Partial: stays unauthorized, only bridges, didn't come back after a replug, or only some ports. Failed: nothing appears on the bus (“Nothing shows up”, after 15 s).",
+   "why": "It checks the whole chain, from the Thunderbolt tunnel to the device behind it.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): the Thunderbolt to Gigabit Ethernet adapter, tg3 behind two bridges."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The PCI device appears but its driver doesn't bind or work (a driver isn't required)."
+    }
+   ]
+  },
+  {
+   "id": "ports.sd-card",
+   "also": "",
+   "title": "SD card reader",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Waits for a card disk to appear with a size: an mmcblk disk (PCIe readers) or Apple's USB card reader gaining a size. External readers are ignored. Nothing is read from the card.",
+   "decides": "Supported: a card disk with a size. Partial: the card is seen but no disk within 10 s. Failed: the tester says nothing shows up (after 15 s).",
+   "why": "A disk with a size is strong evidence.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): a 4.0 GB card on Apple's USB reader."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The card's size reads but data reads fail."
+    }
+   ]
+  },
+  {
+   "id": "ports.usb-c-charging",
+   "also": "",
+   "title": "USB-C charging",
+   "area": "Ports",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Not tested (not in profile).",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "ports.firewire",
+   "also": "",
+   "title": "FireWire",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "medium",
+   "tests": "Offered when the quick pass finds the FireWire controller driven (firewire_ohci) and the Mac's own node on the bus. Watches the FireWire bus, twice a second, for a node other than the Mac's own: a drive, a camera, another Mac in Target Disk Mode. It names the device from the configuration ROM the Mac read over the cable. With a port map, each FireWire 400 and 800 port is ringed and asked for in turn. Nothing is mounted, read or written: a FireWire disk is made read-only the moment it appears, and the sleep tests wait until it's unplugged, since a Mac can hang going to sleep with one attached.",
+   "decides": "Supported: a new node showed up after the screen opened (a device already plugged in has to be unplugged and plugged back in); with a port map, on every port. Partial: on some ports only. Failed: on a Mac with FireWire, the quick pass found no controller, no driver or no bus, or a device was plugged in and nothing showed up (“Nothing shows up”, after 15 s).",
+   "why": "A new node proves the port, the cable's link and the bus, and that the Mac read the device's ROM across it. No more than that crosses the cable: it reads nothing from a drive.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "A drive shows up as a node even if it couldn't move data: the test reads nothing from it."
+    },
+    {
+     "kind": "fail",
+     "text": "Nothing shows up from a device without power, or from a FireWire 400 device on an 800 port through the wrong cable or adapter."
+    }
+   ]
+  },
+  {
+   "id": "ports.expresscard",
+   "also": "",
+   "title": "ExpressCard",
+   "area": "Ports",
+   "method": "None (planned)",
+   "confidence": "none",
+   "tests": "No test yet (planned). Left out of the report (can't tell from the hardware IDs which Macs have it).",
+   "decides": "—",
+   "why": "",
+   "hardware": [],
+   "pitfalls": []
+  },
+  {
+   "id": "storage.optical",
+   "also": "",
+   "title": "Optical drive",
+   "area": "Ports",
+   "method": "Hands-on · automatic",
+   "confidence": "high",
+   "tests": "Offered when the quick pass finds the Mac's own drive with its block device (sr_mod). Asks the drive for its state until it holds a disc, then reads it: a data disc's first MB through the drive, opened read-only, or an audio CD's table of contents. Then it ejects the disc (slot-loading drives have no button) and waits until the drive reports it gone. Nothing is mounted or written. The sleep tests wait until the drive is empty, since a Mac can hang going to sleep with a disc in it.",
+   "decides": "Supported: the disc read and came back out. Partial: it read but wouldn't come out. Failed: the drive couldn't read two discs (a read that stalls for 20 s or runs past 90 s counts as one), or a disc went in and the drive never reported it (“Nothing happens”, after 25 s). A Mac that came with a drive and has none now isn't failed: it may have been removed or swapped for a disk.",
+   "why": "Reading a disc and ejecting it takes the whole drive: loading, the laser, its link to the Mac and the eject.",
+   "hardware": [],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "An audio CD has only its table of contents read, not its tracks."
+    },
+    {
+     "kind": "fail",
+     "text": "Two damaged discs fail a working drive."
+    }
+   ]
+  },
+  {
+   "id": "thermal.sensors",
+   "also": "",
+   "title": "Temperature sensors report under load",
+   "area": "Thermal",
+   "method": "Automatic",
+   "confidence": "high",
+   "tests": "Reads the CPU temperature sensors (coretemp or k10temp) every second while every thread runs a busy loop for 20 s. The safety watchdog stops the load 5 °C under critical.",
+   "decides": "Supported: plausible readings (5–115 °C) that rise 2 °C or more (or the watchdog had to stop it). Partial: readings don't rise. Failed: no CPU sensor or impossible readings.",
+   "why": "Direct and well bounded. Only CPU sensors are judged; GPU and SMC sensors aren't.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): 48 to 64 °C."
+   ],
+   "pitfalls": [
+    {
+     "kind": "fail",
+     "text": "A Mac already hot from earlier tests rises less than 2 °C."
+    }
+   ]
+  },
+  {
+   "id": "thermal.fans",
+   "also": "",
+   "title": "Fans respond to load",
+   "area": "Thermal",
+   "method": "Automatic (raises the fan minimum)",
+   "confidence": "high",
+   "tests": "Reads the SMC fan speeds during the same 20 s load. For the load's last 10 s it raises each fan's minimum (applesmc's fanN_min; the SMC stays in charge) to halfway between its minimum and maximum, at least 800 rpm over its speed, never above its maximum less 100. The original minimum goes back on every way out; only a hard power-off mid-raise skips that.",
+   "decides": "Supported: a raised fan went at least halfway to its new minimum (and 100 rpm or more), or a fan sped up 100 rpm under the load alone. Not tested (uncertain): fans steady, raise and all. Failed: no fans reported. Not tested (live limit) without the applesmc fix or the install kernel.",
+   "why": "A fan that follows its raised minimum proves the fan and its reading, without waiting for the SMC to react to heat.",
+   "hardware": [
+    "On a MacBook Air (13-inch, Mid 2012): minimum 2000 to 4200, the fan went 1996 to 4207, put back to 2000."
+   ],
+   "pitfalls": [
+    {
+     "kind": "pass",
+     "text": "The fan follows a raised minimum, but the SMC's own response to heat is broken (that lives in the SMC's firmware, the same under any OS)."
+    },
+    {
+     "kind": "none",
+     "text": "An SMC that ignores the minimum leaves steady fans uncertain."
+    }
+   ]
+  }
+ ]
+}

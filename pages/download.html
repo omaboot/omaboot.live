@@ -1,4 +1,30 @@
 <!-- title: Download -->
-<!-- description: Download OmaBoot? Live, the USB stick that tests how well Omarchy runs on an Intel Mac. -->
-<h1>Download</h1>
-{{RELEASE}}
+<!-- description: Download OmaBoot? Live, the USB stick that tests how well Omarchy runs on an Intel Mac, and its editions. -->
+<div class="wrap page-head">
+  <h1>Download</h1>
+  {{DOWNLOAD_SAY}}
+</div>
+<div class="wrap">
+  {{EDITIONS full}}
+  <div class="cols">
+    <section>
+      <h2>Each release comes with</h2>
+      <ul>
+        <li>The image: one <code>.iso</code> file.</li>
+        <li><code>SHA256SUMS</code> and its signature, <code>SHA256SUMS.sig</code>, so you can <a href="/verify/">check the download</a>.</li>
+        <li>The Omarchy release it's built from, and the full package list with versions.</li>
+        <li>A difference report against the official Omarchy ISO of the same release.</li>
+        <li>The public build log.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Next</h2>
+      <ol>
+        <li><a href="/verify/">Verify the download</a>.</li>
+        <li><a href="/write/">Write the stick</a>.</li>
+        <li>Hold <kbd>Option</kbd> as the Mac starts.</li>
+      </ol>
+      <p>Meanwhile, see which Macs are already tested on {{DIO}}.</p>
+    </section>
+  </div>
+</div>

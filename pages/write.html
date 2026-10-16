@@ -2,7 +2,7 @@
 <!-- description: Write OmaBoot? Live to a USB stick on macOS, Linux or Windows, then boot an Intel Mac from it with the Option key. -->
 <h1>Write the stick</h1>
 <div class="say">{{BOOT}}<p>one stick, a few minutes. then hold Option.</p></div>
-<p class="lede">You need a USB stick of 4 GB or more. Everything on it is erased.</p>
+<p class="lede">You need a USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy). Everything on it is erased.</p>
 <p>The image is about 2 GB. The first time you save a report to the stick, OmaBoot? Live adds a small partition for reports in the space left over.</p>
 <p>Get the <code>.iso</code> from <a href="/download/">Download</a> and <a href="/verify/">verify it</a> first.</p>
 
@@ -36,7 +36,7 @@ diskutil eject /dev/diskN</code></pre>
 <ul>
   <li>If the stick doesn't show up, try another USB port or another stick. Some older Macs don't list every stick.</li>
   <li>If the Mac has a firmware password, it asks for it first.</li>
-  <li>Macs with the T2 chip (2018–2020) only start from a USB stick once you allow it. See <a href="/faq/#t2">T2 Macs</a>.</li>
+  <li>Macs with the T2 chip (2018–2020) only start from a USB stick once you allow it. See <a href="/docs/#t2">T2 Macs</a>.</li>
 </ul>
 <p>When you're done, shut down and pull the stick.</p>
 <!-- TODO(owner): confirm the startup-disk name on a release build is "OmaBoot? Live" (dev builds carry a DEV tag) and that the first menu entry is the test with a 5 s countdown. -->

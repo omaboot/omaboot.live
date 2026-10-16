@@ -5,15 +5,19 @@ Usage: site_build.py [--releases FILE] [--out DIR]
        site_build.py --serve [PORT] [--out DIR]
 
 The build reads data/site.json (addresses), data/releases.json (published releases, newest
-first; [] until the first one), data/allowed_signers (the release keys) and pages/*.html (the
-copy: each page is an HTML fragment whose first lines are <!-- title: ... --> and
-<!-- description: ... -->), and writes dist/: one directory per page, 404.html, site.css,
-favicon.svg, allowed_signers, robots.txt, sitemap.xml, _headers and _redirects for Cloudflare
-Pages. Boot and the OmaBoot? wordmark are drawn here as inline SVG from the prototype's pixels.
+first, each with its "edition"; [] until the first one), data/editions.json (Live, Omarchy, Lab),
+data/tests.json (the criteria and how OmaBoot? Live tests each one, for Docs), data/allowed_signers
+(the release keys) and pages/*.html (the copy: each page is an HTML fragment whose first lines are
+<!-- title: ... --> and <!-- description: ... -->), and writes dist/: one directory per page, one
+per test under docs/, 404.html, site.css, assets/ (screens drawn by boot-live's tools/screens,
+the editions' startup-disk icons, JetBrains Mono), favicon.svg, allowed_signers, robots.txt,
+sitemap.xml, _headers and _redirects for Cloudflare Pages. Boot and the OmaBoot? wordmark are
+drawn here as inline SVG from the prototype's pixels.
 
 Tokens in pages: {{BOOT}} {{BOOT pleased}} (Boot's sprite), {{WORDMARK}}, {{DIO}} (a link to
-DoesItOmarchy.com), {{RELEASE}} (the Download page's release section), {{SIGNERS}} (the keys),
-{{FP_RELEASE}}, {{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}.
+DoesItOmarchy.com), {{EDITIONS}} (the editions, with each one's newest release), {{AREAS}} (the
+test areas as tiles), {{DOCS}} (the list of tests), {{SIGNERS}} (the keys), {{FP_RELEASE}},
+{{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}.
 <!-- TODO(owner): ... --> comments are listed on every build and left out of dist/.
 
 After writing, the build checks dist/: every internal link resolves, and no token, TODO or
@@ -35,9 +39,20 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
 PAGES = os.path.join(HERE, "pages")
+# GitHub's mark (Octicons mark-github), shown beside the repository link in the bar.
+OCTOCAT = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94"
+           "-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07"
+           "-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0"
+           " 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25"
+           ".54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z")
+
 # Navigation order; the slug is the URL path and the pages/ file name ("index" is /).
-NAV = [("download", "Download"), ("write", "Write the stick"), ("verify", "Verify"), ("faq", "FAQ")]
-FOOTER_ONLY = ["privacy"]  # linked from the footer, so the top line fits a phone
+NAV = [("download", "Download"), ("docs", "Docs")]
+DOCS_GUIDES = [("write", "Write the stick", "Any USB stick of 4 GB or more, from macOS, Linux or Windows. Then hold Option."),
+               ("verify", "Verify a download", "Check the checksum and the signature before you write the stick."),
+               ("privacy", "What gets sent", "What a report holds, where it goes, and what boot.watch keeps (nothing).")]
+FOOTER_ONLY = ["write", "verify", "privacy"]  # the guides: in Docs and the footer, so the top line fits a phone
+WIDE = {"index", "download", "docs"}  # pages that lay out their own width; the others read as prose
 
 # ── Palette (boot-wip/boot-live-proto.src.html, "OmaBoot?") ─────────────────────────────────
 # Boot's own colours stay the same in both themes: he's a character, not text.
@@ -154,6 +169,8 @@ def load_releases(path):
         if not re.fullmatch(r"[0-9a-f]{64}", r["sha256"]):
             sys.exit(f"{path}: {r['version']} sha256 must be 64 lowercase hex digits")
         datetime.date.fromisoformat(r["date"])
+        if r.get("edition", "live") not in ("live", "omarchy", "lab"):
+            sys.exit(f"{path}: {r['version']} edition must be live, omarchy or lab")
     return rels
 
 
@@ -161,44 +178,125 @@ def gb(n):
     return f"{n / 1e9:.1f} GB"
 
 
-def release_html(rels):
-    if not rels:
-        return f'''<div class="say">{boot_svg(label="")}<p>not out yet. I'm still being tested on real Macs.</p></div>
-<div class="soon">
-  <p class="tag">Not released yet</p>
-  <p><b>The first public release is coming soon.</b> There's no download yet, and test builds aren't shared.</p>
+def load_editions():
+    eds = json.load(open(os.path.join(DATA, "editions.json")))
+    for e in eds:
+        if not os.path.exists(os.path.join(HERE, "assets", "editions", e["id"] + ".png")):
+            sys.exit(f"data/editions.json: no icon assets/editions/{e['id']}.png")
+    return eds
+
+
+def newest(rels, edition):
+    return next((r for r in rels if r.get("edition", "live") == edition), None)
+
+
+def edition_card(e, r, full):
+    """One edition as a card: its startup-disk icon, what it is, and its newest release or when."""
+    main = " main" if e.get("main") else ""
+    head = (f'<img class="disk" src="/assets/editions/{e["id"]}.png" width="64" height="64" alt="">'
+            f'<div><p class="role">{html.escape(e["role"])}</p><h3>{html.escape(e["name"])}</h3></div>')
+    if r:
+        name = r["iso"].rsplit("/", 1)[1]
+        get = (f'<p class="get"><a class="button" href="{html.escape(r["iso"])}">Download {html.escape(r["version"])}</a>'
+               f'<span class="quiet">{gb(r["size"])} · {html.escape(r["date"])}</span></p>')
+        if full:
+            a = lambda k, t: f'<a href="{html.escape(r[k])}">{t}</a>'
+            notes = f'<p>{html.escape(r["notes"])}</p>' if r.get("notes") else ""
+            get += f'''{notes}<p class="fine">Built from Omarchy {html.escape(r["omarchy"])} · <code>{html.escape(name)}</code></p>
+<p class="tag">SHA256</p><pre><code>{r["sha256"]}</code></pre>
+<ul class="files"><li>{a("sha256sums", "SHA256SUMS")}</li><li>{a("signature", "SHA256SUMS.sig")}</li><li><a href="/allowed_signers">allowed_signers</a></li>
+<li>{a("packages", "Package list")}</li><li>{a("difference", "Difference report")}</li><li>{a("build_log", "Build log")}</li></ul>'''
+    else:
+        get = f'<p class="get"><span class="status">{html.escape(e["status"])}</span><span class="quiet">{html.escape(e["size"])}</span></p>'
+    return f'<article class="edition ed-{e["id"]}{main}"><div class="ed-head">{head}</div><p>{html.escape(e["line"])}</p>{get}</article>'
+
+
+def editions_html(rels, full=False):
+    eds = load_editions()
+    cards = "".join(edition_card(e, newest(rels, e["id"]), full) for e in eds)
+    return f'<div class="editions">{cards}</div>'
+
+
+# ── Docs: the tests ─────────────────────────────────────────────────────────────────────────
+LEVEL = {"high": (3, "High confidence"), "medium": (2, "Medium confidence"), "low": (1, "Low confidence"),
+         "none": (0, "Not tested live")}
+KIND = {"pass": "Could pass when it shouldn't", "fail": "Could fail when it shouldn't", "none": "Could end without a verdict"}
+
+
+def load_tests():
+    t = json.load(open(os.path.join(DATA, "tests.json")))
+    for c in t["criteria"]:
+        c["slug"] = c["id"].replace(".", "-")
+    return t
+
+
+def area_slug(name):
+    return re.sub(r"[^a-z]+", "-", name.lower()).strip("-")
+
+
+def meter(level, words=True):
+    """How sure a test is: the home page's square, filled as far as the test is sure."""
+    label = LEVEL[level][1]
+    text = f'<span>{label}</span>' if words else ""
+    return f'<span class="meter m-{level}" title="{label}"><i class="sq q-{level}" aria-hidden="true"></i>{text}</span>'
+
+
+def squares(cs):
+    """A tile's row of squares: one per criterion, filled as far as the test is sure."""
+    out = []
+    for c in cs:
+        for _ in range(2 if c.get("also") else 1):
+            out.append(f'<i class="sq q-{c["confidence"]}"></i>')
+    return f'<span class="squares" aria-hidden="true">{"".join(out)}</span>'
+
+
+def areas_html(t):
+    tiles = []
+    for a in t["areas"]:
+        cs = [c for c in t["criteria"] if c["area"] == a["name"]]
+        n = sum(2 if c.get("also") else 1 for c in cs)
+        live = sum((2 if c.get("also") else 1) for c in cs if c["confidence"] != "none")
+        tiles.append(f'<a class="area-tile" href="/docs/#{area_slug(a["name"])}"><h3>{html.escape(a["name"])}</h3>'
+                     f'{squares(cs)}<p>{live} of {n} tested live</p></a>')
+    return f'<div class="area-tiles">{"".join(tiles)}</div>'
+
+
+def docs_html(t):
+    out = []
+    for a in t["areas"]:
+        cs = [c for c in t["criteria"] if c["area"] == a["name"]]
+        rows = "".join(
+            f'<li><a class="test-row" href="/docs/{c["slug"]}/"><span class="tt">{html.escape(c["title"])}</span>'
+            f'<code>{html.escape(c["id"])}</code><span class="how">{html.escape(c["method"])}</span>{meter(c["confidence"], False)}</a></li>'
+            for c in cs)
+        note = f'<p class="quiet">{html.escape(a["note"])}</p>' if a["note"] else ""
+        out.append(f'<section class="docs-area" id="{area_slug(a["name"])}"><h2>{html.escape(a["name"])}</h2>{note}<ul class="tests">{rows}</ul></section>')
+    return "".join(out)
+
+
+def test_body(t, c):
+    cs = t["criteria"]
+    i = cs.index(c)
+    prev, nxt = (cs[i - 1] if i else None), (cs[i + 1] if i + 1 < len(cs) else None)
+    ids = html.escape(c["id"]) + (f' · {html.escape(c["also"])}' if c.get("also") else "")
+    blk = lambda h, body: f'<section class="blk"><h2>{h}</h2>{body}</section>' if body else ""
+    p = lambda s: f"<p>{html.escape(s)}</p>" if s else ""
+    hw = "".join(f"<li>{html.escape(x)}</li>" for x in c["hardware"])
+    pits = "".join(f'<li><span class="kind k-{f["kind"]}">{KIND[f["kind"]]}</span><span>{html.escape(f["text"])}</span></li>' for f in c["pitfalls"])
+    pager = '<nav class="pager" aria-label="Tests">' + (
+        f'<a href="/docs/{prev["slug"]}/">← {html.escape(prev["title"])}</a>' if prev else "<span></span>") + (
+        f'<a href="/docs/{nxt["slug"]}/">{html.escape(nxt["title"])} →</a>' if nxt else "<span></span>") + "</nav>"
+    return f'''<p class="crumbs"><a href="/docs/">Docs</a> / <a href="/docs/#{area_slug(c["area"])}">{html.escape(c["area"])}</a></p>
+<h1>{html.escape(c["title"])}</h1>
+<div class="test-meta"><code>{ids}</code><span class="how">{html.escape(c["method"])}</span>{meter(c["confidence"])}</div>
+<div class="test-grid">
+{blk("How it tests", p(c["tests"]))}
+{blk("How it decides", p(c["decides"]))}
+{blk("How sure it is", p(c["why"]))}
+{blk("On a real Mac", f'<ul class="hw">{hw}</ul>' if hw else "")}
+{blk("What could mislead it", f'<ul class="pits">{pits}</ul>' if pits else "")}
 </div>
-<h2>Each release comes with</h2>
-<ul>
-  <li>The image: one <code>.iso</code> file, about 2 GB.</li>
-  <li><code>SHA256SUMS</code> and its signature, <code>SHA256SUMS.sig</code>, so you can <a href="/verify/">check the download</a>.</li>
-  <li>The Omarchy release it's built from.</li>
-  <li>The full package list, with versions.</li>
-  <li>A difference report against the official Omarchy ISO of the same release.</li>
-  <li>The public build log.</li>
-</ul>
-<p>Meanwhile, see which Macs are already tested on <a href="https://doesitomarchy.com">DoesItOmarchy.com</a>.</p>'''
-    r = rels[0]
-    name = r["iso"].rsplit("/", 1)[1]
-    a = lambda k, t: f'<a href="{html.escape(r[k])}">{t}</a>'
-    notes = f'<p>{html.escape(r["notes"])}</p>' if r.get("notes") else ""
-    return f'''<div class="say">{boot_svg("pleased", label="")}<p>fresh build. check it before you write it.</p></div>
-<div class="release">
-  <p class="tag">OmaBoot? Live {html.escape(r["version"])} · {html.escape(r["date"])} · built from Omarchy {html.escape(r["omarchy"])}</p>
-  {notes}
-  <p class="get"><a class="button" href="{html.escape(r["iso"])}">Download</a> <span class="quiet"><code>{html.escape(name)}</code> · {gb(r["size"])}</span></p>
-  <p class="tag">SHA256</p>
-  <pre><code>{r["sha256"]}</code></pre>
-  <ul class="files">
-    <li>{a("sha256sums", "SHA256SUMS")}</li>
-    <li>{a("signature", "SHA256SUMS.sig")}</li>
-    <li><a href="/allowed_signers">allowed_signers</a></li>
-    <li>{a("packages", "Package list")}</li>
-    <li>{a("difference", "Difference report")}</li>
-    <li>{a("build_log", "Build log")}</li>
-  </ul>
-</div>
-<p>Next: <a href="/verify/">verify the download</a>, then <a href="/write/">write the stick</a>.</p>'''
+{pager}'''
 
 
 # ── Keys ────────────────────────────────────────────────────────────────────────────────────
@@ -226,7 +324,7 @@ def link(url, text):
     return f'<a href="{html.escape(url)}">{text}</a>' if url else text
 
 
-def fill(body, cfg, rels, todos, slug):
+def fill(body, cfg, rels, todos, slug, tests):
     for t in re.findall(r"<!--\s*TODO\(owner\):(.*?)-->", body, re.S):
         todos.append(f"pages/{slug}.html: {' '.join(t.split())}")
     body = re.sub(r"\s*<!--\s*TODO\(owner\):.*?-->", "", body, flags=re.S)
@@ -236,7 +334,11 @@ def fill(body, cfg, rels, todos, slug):
         "{{WORDMARK}}": wordmark_svg(cls="wordmark big"),
         "{{DIO}}": f'<a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>',
         "{{OMARCHY}}": f'<a href="{cfg["omarchy"]}">omarchy.org</a>',
-        "{{RELEASE}}": release_html(rels), "{{SIGNERS}}": signers_html(),
+        "{{EDITIONS}}": editions_html(rels), "{{EDITIONS full}}": editions_html(rels, full=True),
+        "{{METER high}}": meter("high"), "{{METER medium}}": meter("medium"), "{{METER none}}": meter("none"),
+        "{{DOWNLOAD_SAY}}": f'<div class="say">{boot_svg("pleased", label="")}<p>fresh build. check it before you write it.</p></div>' if rels
+                             else f'<div class="say">{boot_svg(label="")}<p>not out yet. I\'m still being tested on real Macs.</p></div>',
+        "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{SIGNERS}}": signers_html(),
         "{{FP_RELEASE}}": signers()[0][4], "{{ISO}}": html.escape(iso),
         "{{SOURCE}}": link(cfg["source"], "the source code") + ("" if cfg["source"] else " (published on GitHub with the first release)"),
         "{{IMAGE_REPO}}": link(cfg["image_repo"], "the image's build repository"),
@@ -259,7 +361,13 @@ def read_page(slug):
 
 def document(cfg, slug, title, desc, body):
     path = "/" if slug == "index" else f"/{slug}/"
-    nav = "".join(f'<a href="/{s}/"{" aria-current=\"page\"" if s == slug else ""}>{t}</a>' for s, t in NAV)
+    section = "docs" if slug.startswith("docs/") or slug in [g for g, _, _ in DOCS_GUIDES] else slug
+    nav = "".join(f'<a href="/{s}/"{" aria-current=\"page\"" if s == section else ""}>{t}</a>' for s, t in NAV)
+    nav += (f'<a class="repo" href="{cfg["repo"]}" rel="noopener">'
+            f'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="{OCTOCAT}"/></svg>{cfg["repo"].rsplit("/", 1)[1]}</a>')
+    if slug not in WIDE:
+        body = f'<div class="prose">{body.strip()}</div>'
+    cls = "page-" + slug.replace("/", "-") + (" page-test" if slug.startswith("docs/") else "")
     full_title = cfg["name"] if slug == "index" else f"{title} · {cfg['name']}"
     url = cfg["site"] + path
     source = f' · {link(cfg["source"], "Source")}' if cfg["source"] else ""
@@ -273,26 +381,27 @@ def document(cfg, slug, title, desc, body):
 <link rel="canonical" href="{url}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{cfg["name"]}">
 <meta property="og:title" content="{html.escape(full_title)}">
 <meta property="og:description" content="{html.escape(desc)}">
 <meta property="og:url" content="{url}">
 </head>
-<body class="page-{slug}">
+<body class="{cls}">
 <a class="skip" href="#main">Skip to content</a>
-<header class="site">
+<header class="site"><div class="bar">
   <a class="brand" href="/">{boot_svg(cls="boot mini", label="")}{wordmark_svg(label="OmaBoot? Live, home")}</a>
   <nav aria-label="Site">{nav}</nav>
-</header>
+</div></header>
 <main id="main">
 {body.strip()}
 </main>
-<footer class="site">
-  <p>OmaBoot? Live is made by <a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>. It isn't an official Omarchy release.</p>
-  <p><a href="/privacy/">Privacy</a> · No cookies, no analytics, no third-party scripts{source}</p>
-</footer>
+<footer class="site"><div class="bar">
+  <p>OmaBoot? Live is made by <a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>. <strong>A community site. Not officially affiliated with <a href="https://omarchy.org" rel="noopener">Omarchy</a> or the <a href="https://omarchy.org/foundation/" rel="noopener">Omacom Foundation</a>.</strong></p>
+  <p><a href="/write/">Write the stick</a> · <a href="/verify/">Verify</a> · <a href="/privacy/">Privacy</a> · <a href="https://status.boot.watch">boot.watch status</a>{source}</p>
+  <p>No cookies, no analytics, no third-party scripts.</p>
+</div></footer>
 </body>
 </html>
 '''
@@ -304,10 +413,13 @@ HEADERS = """/*
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 
 /site.css
   Cache-Control: public, max-age=3600
+
+/assets/*
+  Cache-Control: public, max-age=86400
 
 /allowed_signers
   Content-Type: text/plain; charset=utf-8
@@ -323,14 +435,19 @@ def build(out, releases_file):
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out)
+    tests = load_tests()
     slugs = ["index"] + [s for s, _ in NAV] + FOOTER_ONLY
-    for slug in slugs + ["404"]:
-        title, desc, body = read_page(slug)
-        doc = document(cfg, slug, title, desc, fill(body, cfg, rels, todos, slug))
+    pages = [(slug, *read_page(slug)) for slug in slugs + ["404"]]
+    for c in tests["criteria"]:
+        pages.append((f"docs/{c['slug']}", c["title"], f"How OmaBoot? Live tests {c['title'].lower()} ({c['id']}) on an Intel Mac, how it decides, and how sure it is.", test_body(tests, c)))
+    for slug, title, desc, body in pages:
+        doc = document(cfg, slug, title, desc, fill(body, cfg, rels, todos, slug, tests))
         target = os.path.join(out, "404.html") if slug == "404" else os.path.join(out, "" if slug == "index" else slug, "index.html")
         os.makedirs(os.path.dirname(target), exist_ok=True)
         open(target, "w").write(doc)
+    slugs += [f"docs/{c['slug']}" for c in tests["criteria"]]
     shutil.copy2(os.path.join(HERE, "site.css"), os.path.join(out, "site.css"))
+    shutil.copytree(os.path.join(HERE, "assets"), os.path.join(out, "assets"))
     shutil.copy2(os.path.join(DATA, "allowed_signers"), os.path.join(out, "allowed_signers"))
     open(os.path.join(out, "favicon.svg"), "w").write(FAVICON)
     open(os.path.join(out, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {cfg['site']}/sitemap.xml\n")

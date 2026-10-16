@@ -1,34 +1,119 @@
 <!-- title: OmaBoot? Live -->
 <!-- description: A USB stick that tests how well Omarchy runs on your Intel Mac (2006–2020), without installing anything, and reports the results to DoesItOmarchy.com. -->
 <section class="hero">
-  <h1>{{WORDMARK}}</h1>
-  <p class="lede">Test how well Omarchy runs on your Intel Mac, straight from a USB stick, without installing anything.</p>
-  <div class="say">{{BOOT}}<p>hi, I'm Boot. I run the tests, you watch. your disks stay as they are.</p></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1>Will <span class="omarchy">Omarchy</span> run on your Mac?</h1>
+      <p class="kicker">Boot a Live-Boot environment to find out.</p>
+      <p class="lede">OmaBoot? Live checks your exact Mac in about two minutes, then walks you through hands-on tests of the keyboard, ports, sound, sleep and more. Nothing is installed, and your disks stay read-only.</p>
+      <div class="actions">
+        <a class="button" href="/download/">Download</a>
+        <a class="button ghost" href="/docs/">How each test works</a>
+      </div>
+      <ul class="facts">
+        <li><b>46</b> criteria</li>
+        <li><b>2 min</b> quick pass</li>
+        <li><b>0</b> bytes written to your disks</li>
+      </ul>
+    </div>
+    <figure class="hero-shot">
+      <div class="mac">
+        <div class="lid">
+          {{BOOT}}
+          <picture class="screen">
+            <source media="(prefers-reduced-motion: no-preference)" srcset="/assets/screens/hero-quick-pass.webp" type="image/webp">
+            <img src="/assets/screens/hero-results.png" width="1440" height="896" alt="The quick pass running on a MacBook Air: Boot checks the boot path, warns that the screen may go dark for the graphics test, spins a torus, heats the CPU and checks the fans and light sensor, then shows the quick results: this Mac boots Omarchy, 7 passed, 0 failed.">
+          </picture>
+        </div>
+        <div class="base"></div>
+      </div>
+    </figure>
+  </div>
 </section>
 
-<h2>How it works</h2>
-<ol class="steps">
-  <li><div><h3>Write the stick</h3><p>Any USB stick of 4 GB or more. <a href="/write/">How</a></p></div></li>
-  <li><div><h3>Boot it</h3><p>Hold <kbd>Option</kbd> as the Mac powers on and pick OmaBoot?.</p></div></li>
-  <li><div><h3>Test</h3><p>A quick pass first: about two minutes, no input. Startup, graphics acceleration, display, battery, audio chip, Wi-Fi, temperatures and fans, keyboard backlight.</p><p>Then, if you have a few minutes more, hands-on tests: keyboard, trackpad, speakers, headphones, microphone, camera, Bluetooth, the ports (a drawn map shows where to plug in), external display, lid, charging and sleep. Skip any you like.</p></div></li>
-  <li><div><h3>Report</h3><p>Send the results to {{DIO}}. They're reviewed there and count toward the verdict for your Mac's configuration. No network? Save the report to the stick and send it later.</p></div></li>
-</ol>
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Pick your image</h2>
+      <p>Three editions, one tester. Start with Live.</p>
+    </div>
+    {{EDITIONS}}
+    <p class="more"><a href="/download/">Downloads, checksums and signatures</a></p>
+  </div>
+</section>
 
-<div class="points">
-  <section class="point">
-    <h2>Leaves your disks untouched</h2>
-    <p>Before anything else, every internal disk is set read-only. Nothing is installed and no firmware or startup setting changes. Pull the stick and your Mac is as it was.</p>
-  </section>
-  <section class="point">
-    <h2>Real Omarchy, not a lookalike</h2>
-    <p>Built from Omarchy's own ISO, with the same kernels and packages as an official release. Each release shows exactly what differs. <a href="/verify/">Check it</a></p>
-  </section>
-</div>
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>How it works</h2>
+    </div>
+    <ol class="flow">
+      <li><h3>Write to device</h3><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy). <a href="/write/">How</a></p></li>
+      <li><h3>Hold <kbd>Option</kbd></h3><p>Turn the Mac on, pick OmaBoot? Live from the startup disks.</p></li>
+      <li><h3>Test</h3><p>A two-minute quick pass with no input, then the full hands-on test. Skip any part you like.</p></li>
+      <li><h3>Report</h3><p>Send the results to {{DIO}}, where they help the community: everyone with the same Mac learns what to expect from Omarchy. Offline? Save them to the stick.</p></li>
+    </ol>
+  </div>
+</section>
 
-<h2>Your exact Mac</h2>
-<p>One model often comes in several configurations, with a different graphics chip, Wi-Fi card or screen. OmaBoot? Live identifies the exact one, and your results count for it. It gets online by cable, Wi-Fi or a phone on USB tethering, or tests offline.</p>
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>A sampling of test screens</h2>
+      <p>Each test explains what to do, shows what the Mac sees, and decides from what it measured.</p>
+    </div>
+    <div class="gallery">
+      <figure><img src="/assets/screens/quick-pass.png" width="1440" height="896" alt="The quick pass, with Boot saying the applesmc fix is on and the fans answer, and the list of checks with their results." loading="lazy"><figcaption><b>Quick pass.</b> Two minutes, no input: graphics, display, battery, sound chip, temperatures and fans.</figcaption></figure>
+      <figure><img src="/assets/screens/wifi.png" width="1440" height="896" alt="The Wi-Fi test sending data between the Mac and boot.watch, with the joined network and the bytes received so far." loading="lazy"><figcaption><b>Wi-Fi.</b> Real data to boot.watch and back, every byte checked.</figcaption></figure>
+      <figure><img src="/assets/screens/microphone.png" width="1440" height="896" alt="The microphone test: a sound level bar and five notes, D5 E5 C5 C4 G4, with the third note playing." loading="lazy"><figcaption><b>Microphone.</b> The Mac plays five notes and has to hear them back.</figcaption></figure>
+      <figure><img src="/assets/screens/finish.png" width="1440" height="896" alt="The finish screen: Boot and a big pixel Yay!, the totals, and the choices to submit the report or save a copy to the stick." loading="lazy"><figcaption><b>Finish.</b> Send the report, or save a copy to the stick for later.</figcaption></figure>
+    </div>
+  </div>
+</section>
 
-<div class="actions">
-  <a class="button" href="/download/">Download</a>
-  <a href="https://doesitomarchy.com">See what's tested on DoesItOmarchy.com</a>
-</div>
+<section class="band">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>What it tests</h2>
+      <p>The 46 criteria DoesItOmarchy.com judges every Mac by. Each square is one; the fuller it is, the surer the test.</p>
+    </div>
+    {{AREAS}}
+    <p class="legend"><span><i class="sq q-high"></i>high</span><span><i class="sq q-medium"></i>medium</span><span><i class="sq q-none"></i>needs an installed system</span><a href="/docs/">All tests, and how each one decides</a></p>
+  </div>
+</section>
+
+<section class="band exact">
+  <div class="wrap exact-grid">
+    <div class="exact-copy">
+      <h2>Your exact Mac, not just the model</h2>
+      <p>One model identifier can cover several different machines. <a href="https://doesitomarchy.com/mac/macbookpro8-2">MacBook Pro (15-inch, Early 2011) [MacBookPro8,2]</a> came with either a Radeon HD 6490M or a 6750M, and the same identifier's Late 2011 models brought a 6770M: three graphics chips that Linux drives differently.</p>
+      <p>OmaBoot? Live reads what your Mac really has: its model identifier and board ID, its graphics, Wi-Fi and other chips by their IDs, and finds the one configuration that matches, out of 206 across 121 Mac models. When two could fit, you pick yours from a short list.</p>
+      <p>Your results then count for that exact configuration on <a href="https://doesitomarchy.com">DoesItOmarchy.com</a>, so the next person with the same Mac knows what to expect.</p>
+    </div>
+    <figure class="exact-map" aria-label="MacBookPro8,2 covers four configurations in two releases; OmaBoot? Live reads the board ID, the CPU and the graphics chip's PCI ID and finds the one that matches.">
+      <p class="em-id"><span class="em-k">model</span> MacBookPro8,2 <span class="em-k">board</span> Mac-94245A3940C91C80</p>
+      <div class="em-rels">
+        <div class="em-rel"><p class="em-rel-name">15-inch, Early 2011</p>
+          <p class="em-cfg">Core i7 2.0 GHz · Radeon HD 6490M</p>
+          <p class="em-cfg">Core i7 2.2/2.3 GHz · Radeon HD 6750M</p></div>
+        <div class="em-rel"><p class="em-rel-name">15-inch, Late 2011</p>
+          <p class="em-cfg">Core i7 2.2 GHz · Radeon HD 6750M</p>
+          <p class="em-cfg em-match">Core i7 2.4 GHz · Radeon HD 6770M <span class="em-tag">yours</span></p></div>
+      </div>
+      <figcaption><span class="em-k">read from the Mac</span> CPU i7-2760QM · GPU 1002:6740 → one match</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band last">
+  <div class="wrap points">
+    <section class="point">
+      <h2>Your disks stay untouched</h2>
+      <p>Before anything else, every internal disk is set read-only. Nothing is installed and no firmware or startup setting changes. Pull the stick and your Mac is as it was.</p>
+    </section>
+    <section class="point">
+      <h2>Real Omarchy</h2>
+      <p>Built from Omarchy's own ISO, with the same kernels and packages as an official release. Each release shows exactly what differs. <a href="/verify/">Check it</a></p>
+    </section>
+  </div>
+</section>

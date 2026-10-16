@@ -4,6 +4,7 @@
   "doesitomarchy": "https://doesitomarchy.com",
   "omarchy": "https://omarchy.org",
 
+  "repo": "https://github.com/omaboot",
   "source": "",
   "source_TODO": "Owner: set to https://github.com/omaboot once the org and its public repos exist. While empty, the site names the source without linking it.",
   "image_repo": "",

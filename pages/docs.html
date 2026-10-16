@@ -1,0 +1,65 @@
+<!-- title: Docs -->
+<!-- description: How OmaBoot? Live tests each of the 46 criteria on an Intel Mac, how each test decides, and how sure it is. Plus guides to writing the stick and verifying a download, and the FAQ. -->
+<div class="wrap page-head">
+  <h1>Docs</h1>
+  <p class="lede">How every test works, how it decides, and how far you can trust it.</p>
+</div>
+<div class="wrap">
+  <div class="guides">
+    <a class="guide" href="/write/"><h2>Write the stick</h2><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy), from macOS, Linux or Windows. Then hold Option.</p></a>
+    <a class="guide" href="/verify/"><h2>Verify a download</h2><p>Check the checksum and the signature before you write the stick.</p></a>
+    <a class="guide" href="/privacy/"><h2>What gets sent</h2><p>What a report holds, where it goes, and what boot.watch keeps: nothing.</p></a>
+  </div>
+
+  <section class="read-a-test">
+    <h2>Reading a test</h2>
+    <div class="cols">
+      <div>
+        <h3>How it tests</h3>
+        <dl class="defs">
+          <dt>Automatic</dt><dd>The Mac measures it: kernel facts, devices that appear, data that moves.</dd>
+          <dt>Hands-on</dt><dd>You do something: plug in, press, close the lid. The Mac still measures what it can.</dd>
+          <dt>Challenge</dt><dd>You answer something only a working part could show you: a code on the screen, a word from the speakers.</dd>
+          <dt>Observed</dt><dd>Your plain answer, kept for what no machine can see, like whether the camera picture moves.</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>How sure it is</h3>
+        <ul class="levels">
+          <li>{{METER high}}<span>A pass needs the part to work end to end. A false pass would take a rare fault.</span></li>
+          <li>{{METER medium}}<span>The test is sound but leaves a known gap, named on its page.</span></li>
+          <li>{{METER none}}<span>A live stick can't decide it, like installing to disk. It's left to Omarchy itself.</span></li>
+        </ul>
+        <p class="quiet">A test never passes on doubt. When it can't tell, the result is "not tested", with the reason.</p>
+      </div>
+    </div>
+  </section>
+
+  {{DOCS}}
+
+  <section class="docs-faq" id="faq">
+    <h2>FAQ</h2>
+    <h3 id="changes">Does it change my Mac?</h3>
+    <p>No. Before anything else, OmaBoot? Live sets every internal disk read-only, so nothing can write to it. It installs nothing and doesn't write to the firmware, its settings or the startup disk choice.</p>
+    <p>The only things it writes to are the stick it runs from, when you save a report there, and a stick or card you plug in for a port test. That test writes one temporary file to it and deletes it again.</p>
+
+    <h3 id="which">Which Macs is it for?</h3>
+    <p>Intel Macs, from 2006 to 2020. Omarchy needs a 64-bit processor, so the first Intel Macs of 2006, with a Core Solo or Core Duo, can't run it. Macs with Apple silicon (M1 and later) can't start it either.</p>
+    <p>Some early Intel Macs have a 64-bit processor but 32-bit firmware. OmaBoot? Live hasn't been tried on one of those yet.</p>
+    <!-- TODO(owner): update the 32-bit EFI sentence once one has been tried (LIVE-PLAN spike 5, parked). -->
+
+    <h3 id="t2">What about T2 Macs?</h3>
+    <p>The Apple T2 Security Chip is in most Intel Macs from 2018 to 2020 and in the iMac Pro. It runs Secure Boot and the internal SSD. The camera and speakers are connected through it, and on laptops the keyboard and trackpad too.</p>
+    <p>A T2 Mac won't start from a USB stick until you allow it: start up in macOS Recovery, open <b>Startup Security Utility</b>, set Secure Boot to <b>No Security</b> and allow booting from external media. You can set it back afterwards.</p>
+    <p>On T2 Macs, OmaBoot? Live starts the t2linux kernel (<code>linux-t2</code>), the kernel Omarchy installs on them. On other Macs it starts Omarchy's standard kernel.</p>
+    <p>The T1 chip, in the 2016 and 2017 MacBook Pro with Touch Bar, runs the Touch Bar and Touch ID. It doesn't change how the Mac starts from USB.</p>
+
+    <h3 id="offline">What if there's no network?</h3>
+    <p>Choose to test offline. Everything runs the same. At the end, save the report to the stick and send it to {{DIO}} later, from any computer.</p>
+    <!-- TODO(owner): say how a saved report gets sent later (an upload page on DoesItOmarchy.com? its address?) and link it here and on Privacy. -->
+
+    <h3 id="official">Is it official Omarchy?</h3>
+    <p>It runs real Omarchy: built from Omarchy's own ISO, with the same kernels and packages as an official Omarchy release. <a href="/verify/#why">How to check</a></p>
+    <p>It's made by {{DIO}}, not by the Omarchy team. It runs its tests from the text console, without starting the Omarchy desktop, and it has no installer. To install Omarchy, get the official ISO from {{OMARCHY}}.</p>
+  </section>
+</div>

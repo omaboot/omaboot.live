@@ -1,7 +1,7 @@
 <!-- title: Privacy -->
 <!-- description: What an OmaBoot? Live report contains, what it never contains, and what happens when you send it to DoesItOmarchy.com. -->
 <h1>Privacy</h1>
-<p class="lede">Nothing leaves the Mac until you press <b>Send</b>. Before you do, the Send screen lists what goes.</p>
+<p class="lede">Your report leaves the Mac only when you press <b>Send</b>, and the Send screen lists what goes. Before that, the network tests move test data and nothing else.</p>
 
 <h2>What a report contains</h2>
 <ul>
@@ -14,6 +14,13 @@
 
 <h2>What it never contains</h2>
 <p>Serial numbers, network (MAC) addresses, the computer's name, Wi-Fi network names or passwords, the names of nearby Bluetooth devices, camera pictures or microphone recordings, or any file or data from your disks.</p>
+
+<h2>Network traffic before you send</h2>
+<ul>
+  <li><b>boot.watch,</b> for the Wi-Fi and Ethernet tests and the sign-in page check: random test data, made from a seed the Mac picks, sent there and back so every byte can be checked. It carries nothing about your Mac. boot.watch keeps no request log and stores no addresses; it only counts tests and bytes. Its uptime is public at <a href="https://status.boot.watch">status.boot.watch</a>.</li>
+  <li><b>{{DIO}},</b> once, for the newest list of Mac configurations, so OmaBoot? Live can tell yours apart. It sends only the version of the list it already has.</li>
+</ul>
+<p>Offline, both are skipped: the tester uses the list built into the stick, and the network tests say they weren't tested.</p>
 
 <h2>When you send it</h2>
 <p>The report goes over HTTPS to {{DIO}}. A person reviews it before it counts toward a verdict or appears on the site.</p>

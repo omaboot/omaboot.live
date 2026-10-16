@@ -1,0 +1,27 @@
+[
+  {
+    "id": "live",
+    "name": "OmaBoot? Live",
+    "role": "The tester",
+    "line": "A verifiable fork of the official Omarchy ISO. Test your Mac, and fixes, against Omarchy without installing anything or touching your disks.",
+    "size": "about 1.2 GB",
+    "status": "First release soon",
+    "main": true
+  },
+  {
+    "id": "omarchy",
+    "name": "OmaBoot? Omarchy",
+    "role": "Installer and tester",
+    "line": "Omarchy's own installer with the tester one menu entry away. Test first, then install from the same stick.",
+    "size": "about 6 GB",
+    "status": "After Live"
+  },
+  {
+    "id": "lab",
+    "name": "OmaBoot? Slim",
+    "role": "Two sticks",
+    "line": "Someday, hopefully: a small OmaBoot? stick that works alongside Omarchy's official ISO on a second stick. Test with one, install with the other.",
+    "size": "",
+    "status": "Hopeful future"
+  }
+]
