@@ -1,15 +1,16 @@
 <!-- title: Docs -->
-<!-- description: How OmaBoot? Live tests each of the 46 criteria on an Intel Mac, how each test decides, and how sure it is. Plus guides to flashing a USB stick, verifying a download and starting a T2 Mac, and the FAQ. -->
+<!-- description: How OmaBoot? Live tests each of the 46 criteria on an Intel Mac, how each test decides, and how sure it is. Plus guides to flashing a USB stick, verifying a download, boot.watch's protocol and starting a T2 Mac, and the FAQ. -->
 <div class="wrap page-head">
   <h1>Docs</h1>
   <p class="lede">How every test works, how it decides, and how far you can trust it.</p>
 </div>
 <div class="wrap">
   <div class="guides">
-    <a class="guide" href="/write/"><h2>Flash a USB stick</h2><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy), from macOS, Linux or Windows. Then hold Option.</p></a>
-    <a class="guide" href="/verify/"><h2>Verify a download</h2><p>Check the checksum and the signature before you flash the stick.</p></a>
-    <a class="guide" href="#t2"><h2>T2 Macs</h2><p>Allow a 2018–2020 Mac to start from the stick, step by step, and set it back after.</p></a>
-    <a class="guide" href="/privacy/"><h2>What gets sent</h2><p>What a report holds, where it goes, and what boot.watch keeps: nothing.</p></a>
+    <a class="guide" href="/write/"><svg class="guide-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.5" y="9" width="9" height="12.5" rx="1.5"/><path d="M9.5 9V3.5h5V9"/><path d="M11 5.5v1.3M13 5.5v1.3"/><path d="M10 13h4"/></svg><h2>Flash a USB stick</h2><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy), from macOS, Linux or Windows. Then hold Option.</p></a>
+    <a class="guide" href="/verify/"><svg class="guide-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l7 2.9v5.1c0 4.6-3 8.3-7 10.4-4-2.1-7-5.8-7-10.4V5.7z"/><path d="M8.6 12.2l2.4 2.4 4.4-4.8"/></svg><h2>Verify a download</h2><p>Check the checksum and the signature before you flash the stick.</p></a>
+    <a class="guide" href="#bootwatch"><svg class="guide-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h14.5M15.5 5.5l3 3-3 3"/><path d="M20 15.5H5.5M8.5 12.5l-3 3 3 3"/></svg><h2>boot.watch</h2><p>The server the network tests talk to: what it checks, its protocol, what it keeps.</p></a>
+    <a class="guide" href="#t2"><svg class="guide-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5" rx=".6"/><path d="M9.5 3v3.5M14.5 3v3.5M9.5 17.5V21M14.5 17.5V21M3 9.5h3.5M3 14.5h3.5M17.5 9.5H21M17.5 14.5H21"/></svg><h2>T2 Macs</h2><p>Allow a 2018–2020 Mac to start from the stick, step by step, and set it back after.</p></a>
+    <a class="guide" href="/privacy/"><svg class="guide-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 11.2L20.8 4l-7.2 17.6-2.9-7.6z"/><path d="M10.7 14L20.8 4"/></svg><h2>What gets sent</h2><p>What a report holds, where it goes, and what boot.watch keeps: nothing.</p></a>
   </div>
 
   <section class="read-a-test">
@@ -37,6 +38,66 @@
   </section>
 
   {{DOCS}}
+
+  <section class="docs-bw" id="bootwatch">
+    <h2>boot.watch: the network tests' server</h2>
+    <p class="lede">boot.watch is OmaBoot?'s own small server. The Wi-Fi and Ethernet tests move their test data through it and check every byte, both ways, so a sign-in page, a proxy's error page or a broken adapter can't pass for a working network.</p>
+
+    <h3 id="bootwatch-protocol">The protocol (v1)</h3>
+    <p>Small and public, so a client in any language can use it. Everything is under <code>https://boot.watch/v1/</code>.</p>
+    <div class="table-scroll"><table class="pkgs proto">
+      <thead><tr><th>Request</th><th>Answer</th><th>Limits</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /v1/echo?n=&lt;32 hex&gt;</code></td><td>The nonce, as <code>text/plain</code>, exactly as sent (lowercase hex).</td><td>600 a minute per address</td></tr>
+        <tr><td><code>GET /v1/stream?seed=&lt;32 hex&gt;&amp;n=&lt;bytes&gt;</code></td><td>The first <code>n</code> bytes of the seed's stream, <code>application/octet-stream</code>, with <code>Content-Length</code>.</td><td>1 to 1,048,576 bytes; 64 MiB an hour per address</td></tr>
+        <tr><td><code>POST /v1/sink?seed=&lt;32 hex&gt;</code> + body</td><td><code>{"n": &lt;bytes read&gt;, "match": &lt;leading bytes equal to the seed's stream&gt;}</code></td><td><code>Content-Length</code> required, up to 262,144; 16 MiB an hour per address</td></tr>
+        <tr><td><code>GET /v1/health</code></td><td>Totals since start, bytes today and the server's <code>version</code>, as JSON.</td><td></td></tr>
+      </tbody>
+    </table></div>
+    <ul class="plain-list">
+      <li>Every answer carries <code>Cache-Control: no-store, no-transform</code>, so nothing between the Mac and the server can serve a stored copy.</li>
+      <li>Stream and sink bytes also count against 4 GiB a day (UTC) for everyone. Over a limit the answer is <code>429</code> with <code>Retry-After</code>.</li>
+      <li>An IPv6 address counts by its /64. Malformed requests get <code>400</code>, <code>405</code>, <code>411</code> or <code>413</code> with a one-line reason.</li>
+    </ul>
+
+    <h3 id="bootwatch-stream">The stream</h3>
+    <p>AES-128 in counter mode, with the seed as the key and a zero starting counter, over zeros: the keystream itself. Any computer can make the same bytes, so both ends can check them without sending a copy:</p>
+    <pre class="wrap" data-label="making the stream"><code>head -c 32 /dev/zero | openssl enc -aes-128-ctr -K 000102030405060708090a0b0c0d0e0f -iv 00000000000000000000000000000000 | od -An -tx1 | tr -d ' \n'</code></pre>
+    <p class="expect">Test vectors, the first 32 bytes</p>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Seed</th><th>Stream</th></tr></thead>
+      <tbody>
+        <tr><td><code>00000000000000000000000000000000</code></td><td><code>66e94bd4ef8a2c3b884cfa59ca342b2e58e2fccefa7e3061367f1d57a4e7455a</code></td></tr>
+        <tr><td><code>000102030405060708090a0b0c0d0e0f</code></td><td><code>c6a13b37878f5b826f4f8162a1c8d8797346139595c0b41e497bbde365f42d0a</code></td></tr>
+      </tbody>
+    </table></div>
+    <p class="quiet">A seed means nothing outside its request: the Mac picks a fresh random one each time.</p>
+
+    <h3 id="bootwatch-test">How a network test uses it</h3>
+    <p>Over one connection bound to the adapter under test (<code>SO_BINDTODEVICE</code>), 15 seconds at most:</p>
+    <ol class="bw-steps">
+      <li><b>Sign-in check.</b> An echo over plain HTTP first. A sign-in page can't show inside verified HTTPS, only over plain HTTP: a redirect elsewhere, a <code>511</code> or any other page means the network wants a sign-in. A redirect to the same address over HTTPS is only HTTPS being enforced, and is ignored.</li>
+      <li><b>Round trip.</b> Six echoes over HTTPS; the last five give the round-trip time. A certificate for another name or from an unknown authority means someone else answered (a sign-in page or a proxy); one outside its dates means the Mac's clock is wrong.</li>
+      <li><b>Download.</b> Stream parts of 64 KB and 256 KB, every byte compared.</li>
+      <li><b>Upload.</b> 64 KB to the sink; the answer must say all of it matched.</li>
+      <li><b>Speed.</b> A 1 MB stream part, cut at 2 seconds, only to measure speed.</li>
+    </ol>
+    <p>The adapter's own byte counters must have grown by at least what moved, so the data really went through it. Data verified both ways passes. A failure counts against the adapter only when boot.watch was there to answer; when the server is down, the test says so instead.</p>
+
+    <h3 id="bootwatch-keeps">What it keeps</h3>
+    <p>Nothing that identifies you or your Mac. No request log and no addresses on disk; the test data is random and carries nothing. Rate limits are kept in memory per address and forgotten after an hour, and the counters are totals only. It runs on a small server behind Cloudflare that accepts no connections of its own (it dials out), and production runs tagged releases only: <code>/v1/health</code> names the version. More in <a href="/privacy/">Privacy</a>.</p>
+
+    <h3 id="bootwatch-status">Watching it</h3>
+    <p><a href="https://status.boot.watch">status.boot.watch</a> checks boot.watch every minute the way a Mac does: an echo, 16 KB down and 16 KB up, every byte verified, after a control check so its own network trouble doesn't count against the server. It shows the last 60 days.</p>
+
+    <h3 id="bootwatch-relay">Planned: the phone relay <span class="tag-planned">planned</span></h3>
+    <ul class="plain-list">
+      <li><b>Pairing:</b> a QR code on the Mac carries a one-time session key after the <code>#</code>, the part of an address a browser never sends. The phone opens boot.watch, both sides connect out to it, and every message is encrypted end to end with that key.</li>
+      <li><b>The phone's part:</b> read codes on the screen, hear sound-coded words, flash codes at the camera. It decodes on the phone and sends only results.</li>
+      <li><b>The relay stores nothing,</b> forgets a session when it ends, and limits each address. Its protocol will be documented here too.</li>
+      <li><b>Every phone step has a manual twin:</b> if the phone goes quiet for 5 seconds, the step switches to the manual way.</li>
+    </ul>
+  </section>
 
   <section class="docs-t2" id="t2">
     <h2>T2 Macs: allow the stick</h2>

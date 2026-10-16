@@ -143,7 +143,7 @@ svg.boot .lids, svg.boot .tip { opacity: 0; }
   position: relative;
 }
 /* the iMac10,1 from the rear, its ports labelled with the tests (data/hero-imac.svg; owner's pick D3) */
-.hero-art { position: absolute; left: 50%; bottom: 0; width: 1440px; height: 720px; max-width: none; margin-left: -720px; color: var(--tn-purple); opacity: 0.22; pointer-events: none; }
+.hero-art { position: absolute; left: 50%; bottom: 0; width: 1440px; height: 1530px; max-width: none; margin-left: -720px; color: var(--tn-purple); opacity: 0.22; pointer-events: none; }
 .hero-art .labels { font-family: var(--mono); }
 .hero-grid { position: relative; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; padding-block: 72px 132px; }  /* room under the laptop for the drawing's ports */
@@ -527,3 +527,40 @@ ul.paths .area, ul.paths .d { color: var(--faint); }
 ul.paths code { background: none; border: 0; padding: 0; overflow-wrap: anywhere; }
 @media (max-width: 560px) { dl.facts-list, ul.paths li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
 table.pkgs code { white-space: nowrap; overflow-wrap: normal; }
+
+/* ── Home: boot.watch ───────────────────────────────────────────────────────────────────── */
+.bw-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .bw-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+.bw-flow { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 20px 22px; min-width: 0; }
+.bw-ends { display: flex; justify-content: space-between; width: 150px; margin: 0 0 6px; font: 11px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+ol.seq { list-style: none; padding: 0; margin: 0; display: grid; }
+ol.seq li { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; align-items: center; margin: 0; padding: 10px 0; border-top: 1px solid var(--line); }
+ol.seq p { margin: 0; color: var(--quiet); font-size: 14px; }
+ol.seq b { color: var(--ink); font-weight: 400; }
+/* the arrows: the Mac on the left, boot.watch on the right */
+.arrow { position: relative; display: block; height: 10px; background: linear-gradient(var(--accent), var(--accent)) center / calc(100% - 12px) 1.5px no-repeat; }
+.arrow.to::after, .arrow.both::after { content: ""; position: absolute; right: 0; top: 0; border: 5px solid transparent; border-left: 8px solid var(--accent); border-right: 0; }
+.arrow.from::before, .arrow.both::before { content: ""; position: absolute; left: 0; top: 0; border: 5px solid transparent; border-right: 8px solid var(--accent); border-left: 0; }
+@media (max-width: 560px) { .bw-ends { width: 116px; letter-spacing: 0.02em; } ol.seq li { grid-template-columns: 116px minmax(0, 1fr); gap: 12px; } }
+.bw-flow figcaption { margin-top: 12px; font-size: 12px; color: var(--faint); }
+.bw-points { display: grid; gap: 22px; }
+.bw-points section { border-left: 1px solid var(--accent-deep); padding-left: 18px; }
+.bw-points h3 { margin: 0 0 6px; font-size: 18px; }
+.bw-points p { margin: 0; color: var(--quiet); font-size: 14px; }
+.tag-planned { font: 400 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber); border: 1px dashed color-mix(in srgb, var(--amber) 60%, var(--bg)); border-radius: 2px; padding: 3px 6px; margin-left: 6px; vertical-align: 2px; }
+
+/* ── Docs: boot.watch ───────────────────────────────────────────────────────────────────── */
+.docs-bw { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.docs-bw > h2 { margin: 0 0 8px; font-size: clamp(26px, 3.2vw, 34px); }
+.docs-bw > :is(p, ul, ol) { max-width: 80ch; }
+.docs-bw h3 { margin: 32px 0 10px; scroll-margin-top: 16px; }
+.docs-bw .lede { margin-bottom: 8px; }
+table.proto td:first-child { white-space: nowrap; }
+ol.bw-steps { padding-left: 22px; display: grid; gap: 8px; color: var(--quiet); }
+ol.bw-steps b { color: var(--ink); font-weight: 400; }
+.guides { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+/* Docs' guide cards: a line icon each, centred above the words (owner, 2026-10-16) */
+.guide { text-align: center; padding-block: 24px 22px; }
+.guide-icon { display: block; width: 40px; height: 40px; margin: 0 auto 14px; fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.guide:hover .guide-icon { stroke: var(--ink); }
