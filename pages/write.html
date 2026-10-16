@@ -1,41 +1,73 @@
-<!-- title: Write the stick -->
-<!-- description: Write OmaBoot? Live to a USB stick on macOS, Linux or Windows, then boot an Intel Mac from it with the Option key. -->
-<h1>Write the stick</h1>
+<!-- title: Flash a USB stick -->
+<!-- description: Flash OmaBoot? Live to a USB stick on macOS, Linux or Windows, then start an Intel Mac from it with the Option key. -->
+<h1>Flash a USB stick</h1>
 <div class="say">{{BOOT}}<p>one stick, a few minutes. then hold Option.</p></div>
-<p class="lede">You need a USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy). Everything on it is erased.</p>
-<p>The OmaBoot? Live image is about 1.2 GB (OmaBoot? Omarchy about 6 GB). The first time you save a report to the stick, OmaBoot? Live adds a small partition for reports in the space left over.</p>
-<p>Get the <code>.iso</code> from <a href="/download/">Download</a> and <a href="/verify/">verify it</a> first.</p>
 
-<h2 id="macos">macOS</h2>
-<p>Easiest: <a href="https://etcher.balena.io">balenaEtcher</a>. Choose <b>Flash from file</b>, then the stick, then <b>Flash</b>.</p>
-<p>Or in Terminal with <code>dd</code>. First find the stick's disk number:</p>
-<pre><code>diskutil list external</code></pre>
-<p>Check the size and name twice. <code>dd</code> overwrites whatever disk you give it, without asking. Then, with your number in place of <code>N</code>:</p>
-<pre><code>diskutil unmountDisk /dev/diskN
+<dl class="needs">
+  <div><dt>Stick</dt><dd>2 GB or more (8 GB for OmaBoot? Omarchy)</dd></div>
+  <div><dt>Image</dt><dd>About 1.2 GB (OmaBoot? Omarchy: 6 GB), from <a href="/download/">Download</a>, <a href="/verify/">verified</a></dd></div>
+  <div><dt>Erases</dt><dd>Everything on the stick</dd></div>
+</dl>
+<p class="quiet">The first time you save a report to the stick, OmaBoot? Live adds a small partition for reports in the space left over.</p>
+
+<div class="oses">
+  <section class="os-card" id="macos">
+    <h2>macOS</h2>
+    <p><b>Easiest:</b> <a href="https://etcher.balena.io">balenaEtcher</a>. <b>Flash from file</b>, the stick, <b>Flash</b>.</p>
+    <p class="tag">Or in Terminal</p>
+    <ol class="cmd-steps">
+      <li><p>Find the stick's disk number:</p><pre data-label="finding the stick on macOS"><code>diskutil list external</code></pre></li>
+      <li><p>Flash it, with your number for <code>N</code>:</p><pre data-label="flashing on macOS"><code>diskutil unmountDisk /dev/diskN
 sudo dd if={{ISO}} of=/dev/rdiskN bs=4m
-diskutil eject /dev/diskN</code></pre>
-<p>If macOS says it can't read the disk, choose <b>Ignore</b>.</p>
+diskutil eject /dev/diskN</code></pre></li>
+    </ol>
+    <p class="note">If macOS says it can't read the disk, choose <b>Ignore</b>.</p>
+  </section>
 
-<h2 id="linux">Linux</h2>
-<p>With GNOME Disks: pick the stick, open the menu, choose <b>Restore Disk Image…</b>, pick the <code>.iso</code> and start.</p>
-<p>Or with <code>dd</code>. Find the stick (<code>TRAN</code> says <code>usb</code>), and check it twice:</p>
-<pre><code>lsblk -o NAME,SIZE,MODEL,TRAN</code></pre>
-<pre><code>sudo dd if={{ISO}} of=/dev/sdX bs=4M status=progress oflag=sync</code></pre>
-<p>Use the whole disk (<code>/dev/sdX</code>), not a partition (<code>/dev/sdX1</code>).</p>
+  <section class="os-card" id="linux">
+    <h2>Linux</h2>
+    <p><b>Easiest:</b> GNOME Disks. Pick the stick, open the menu, <b>Restore Disk Image…</b>, the <code>.iso</code>, start.</p>
+    <p class="tag">Or in a terminal</p>
+    <ol class="cmd-steps">
+      <li><p>Find the stick (<code>TRAN</code> says <code>usb</code>):</p><pre data-label="finding the stick on Linux"><code>lsblk -o NAME,SIZE,MODEL,TRAN</code></pre></li>
+      <li><p>Flash the whole disk, not a partition:</p><pre data-label="flashing on Linux"><code>sudo dd if={{ISO}} of=/dev/sdX bs=4M status=progress oflag=sync</code></pre></li>
+    </ol>
+  </section>
 
-<h2 id="windows">Windows</h2>
-<p>Use <a href="https://etcher.balena.io">balenaEtcher</a> as on macOS, or <a href="https://rufus.ie">Rufus</a>: pick the stick and the <code>.iso</code>, then <b>Start</b>. When Rufus asks how to write the image, choose <b>Write in DD Image mode</b>.</p>
+  <section class="os-card" id="windows">
+    <h2>Windows</h2>
+    <p><b>Easiest:</b> <a href="https://etcher.balena.io">balenaEtcher</a>, as on macOS.</p>
+    <p class="tag">Or</p>
+    <p><a href="https://rufus.ie">Rufus</a>: pick the stick and the <code>.iso</code>, then <b>Start</b>. When it asks how to write the image, choose <b>Write in DD Image mode</b>.</p>
+  </section>
+</div>
+<p class="warn"><b><code>dd</code> overwrites whatever disk you give it, without asking.</b> Check the size and name twice.</p>
 
 <h2 id="boot">Boot it</h2>
-<ol>
-  <li>Plug the stick straight into the Mac, not into a hub. On a laptop, plug in the charger too.</li>
-  <li>Turn the Mac on and hold <kbd>Option</kbd> (<kbd>Alt</kbd> on a non-Apple keyboard) until the startup disks appear.</li>
-  <li>Pick <b>OmaBoot? Live</b> and press <kbd>Return</kbd>. A short menu shows for 5 seconds, and its first entry starts the tests.</li>
-</ol>
-<p>This choice is for this start only. Next time, the Mac starts from its own disk as usual.</p>
-<ul>
-  <li>If the stick doesn't show up, try another USB port or another stick. Some older Macs don't list every stick.</li>
-  <li>If the Mac has a firmware password, it asks for it first.</li>
-  <li>Macs with the T2 chip (2018–2020) only start from a USB stick once you allow it. See <a href="/docs/#t2">T2 Macs</a>.</li>
+<div class="boot-it">
+  <ol class="boot-steps">
+    <li><b>Plug in.</b> The stick straight into the Mac, not a hub. On a laptop, the charger too.</li>
+    <li><b>Hold <kbd>Option</kbd></b> (<kbd>Alt</kbd> on a non-Apple keyboard) as the Mac starts, until the startup disks appear.</li>
+    <li><b>Pick OmaBoot? Live</b> and press <kbd>Return</kbd>. A short menu shows for 5 seconds; its first entry starts the tests.</li>
+  </ol>
+  <figure class="picker" aria-label="The Mac's startup disk choice: Macintosh HD and OmaBoot? Live, with OmaBoot? Live picked.">
+    <svg viewBox="0 0 360 170" aria-hidden="true">
+      <g class="hd" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="72" y="34" width="72" height="56" rx="5"/>
+        <path d="M72 74h72"/><circle cx="132" cy="82" r="2.5"/>
+      </g>
+      <text x="108" y="118" text-anchor="middle">Macintosh HD</text>
+      <image href="/assets/editions/live.png" x="216" y="26" width="72" height="72"/>
+      <text x="252" y="118" text-anchor="middle" class="pick">OmaBoot? Live</text>
+      <path class="pick-line" d="M206 128h92"/>
+      <path class="arrow" d="M244 152l8-10 8 10" fill="none" stroke-width="1.5"/>
+    </svg>
+    <figcaption>What <kbd>Option</kbd> shows: the Mac's own disk, and the stick.</figcaption>
+  </figure>
+</div>
+<p>The choice is for this start only. Next time, the Mac starts from its own disk as usual. When you're done, shut down and pull the stick.</p>
+<ul class="edge">
+  <li><b>No stick listed?</b> Try another USB port or another stick. Some older Macs don't list every stick.</li>
+  <li><b>Firmware password?</b> The Mac asks for it first.</li>
+  <li><b>T2 Mac (2018–2020)?</b> It starts from a stick only once you allow it: <a href="/docs/#t2">T2 Macs, step by step</a>.</li>
 </ul>
-<p>When you're done, shut down and pull the stick.</p>

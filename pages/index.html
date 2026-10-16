@@ -1,10 +1,11 @@
 <!-- title: OmaBoot? Live -->
 <!-- description: A USB stick that tests how well Omarchy runs on your Intel Mac (2006–2020), without installing anything, and reports the results to DoesItOmarchy.com. -->
 <section class="hero">
+  {{HERO_ART}}
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <h1>Will <span class="omarchy">Omarchy</span> run on your Mac?</h1>
-      <p class="kicker">Boot a Live-Boot environment to find out.</p>
+      <p class="kicker">Run it live from a USB stick to find out.</p>
       <p class="lede">OmaBoot? Live checks your exact Mac in about two minutes, then walks you through hands-on tests of the keyboard, ports, sound, sleep and more. Nothing is installed, and your disks stay read-only.</p>
       <div class="actions">
         <a class="button" href="/download/">Download</a>
@@ -48,7 +49,7 @@
       <h2>How it works</h2>
     </div>
     <ol class="flow">
-      <li><h3>Write to device</h3><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy). <a href="/write/">How to write it</a></p></li>
+      <li><h3>Flash a USB stick</h3><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy). <a href="/write/">How to flash it</a></p></li>
       <li><h3>Hold <kbd>Option</kbd></h3><p>Turn the Mac on, pick OmaBoot? Live from the startup disks.</p></li>
       <li><h3>Test</h3><p>A two-minute quick pass with no input, then the full hands-on test. Skip any part you like.</p></li>
       <li><h3>Report</h3><p>Send the results to {{DIO}}, where they help the community: everyone with the same Mac learns what to expect from Omarchy. Offline? Save them to the stick.</p></li>
@@ -86,9 +87,11 @@
   <div class="wrap exact-grid">
     <div class="exact-copy">
       <h2>Your exact Mac, not just the model</h2>
-      <p>One model identifier can cover several different machines. <a href="https://doesitomarchy.com/mac/macbookpro8-2">MacBook Pro (15-inch, Early 2011) [MacBookPro8,2]</a> came with either a Radeon HD 6490M or a 6750M, and the same identifier's Late 2011 models brought a 6770M: three graphics chips that Linux drives differently.</p>
-      <p>OmaBoot? Live reads what your Mac really has: its model identifier and board ID, its graphics, Wi-Fi and other chips by their IDs, and finds the one configuration that matches, out of 206 across 121 Mac models. When two could fit, you pick yours from a short list.</p>
-      <p>Your results then count for that exact configuration on <a href="https://doesitomarchy.com">DoesItOmarchy.com</a>, so the next person with the same Mac knows what to expect.</p>
+      <ol class="exact-steps">
+        <li><b>One identifier, several Macs.</b> <a href="https://doesitomarchy.com/mac/macbookpro8-2">MacBook Pro (15-inch, Early 2011) [MacBookPro8,2]</a> shipped with three different graphics chips, and Linux drives each one differently.</li>
+        <li><b>It reads what's inside.</b> The board ID and the chips' IDs pick the one matching configuration of 206; when two could fit, you choose.</li>
+        <li><b>Your results count there.</b> On {{DIO}}, for that exact configuration, so the next person with the same Mac knows what to expect.</li>
+      </ol>
     </div>
     <figure class="exact-map" aria-label="MacBookPro8,2 covers four configurations in two releases; OmaBoot? Live reads the board ID, the CPU and the graphics chip's PCI ID and finds the one that matches.">
       <p class="em-id"><span class="em-k">model</span> MacBookPro8,2 <span class="em-k">board</span> Mac-94245A3940C91C80</p>

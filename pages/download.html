@@ -1,5 +1,5 @@
 <!-- title: Download -->
-<!-- description: Download OmaBoot? Live, the USB stick that tests how well Omarchy runs on an Intel Mac, and its editions. -->
+<!-- description: Download OmaBoot? Live, the USB stick that tests how well Omarchy runs on an Intel Mac, and its editions; what each release is checked for. -->
 <div class="wrap page-head">
   <h1>Download</h1>
   {{DOWNLOAD_SAY}}
@@ -7,25 +7,34 @@
 <div class="wrap">
   <h2 class="sr-only">Editions</h2>
   {{EDITIONS full}}
+
+  <section class="verified" id="verified">
+    <div class="section-head plain">
+      <h2>Verified against official Omarchy</h2>
+      <p>What every release is checked for before it's signed.</p>
+    </div>
+    {{VERIFIED}}
+  </section>
+
   <div class="cols">
     <section>
       <h2>Each release comes with</h2>
-      <ul>
+      <ul class="plain-list">
         <li>The image: one <code>.iso</code> file.</li>
-        <li><code>SHA256SUMS</code> and its signature, <code>SHA256SUMS.sig</code>, so you can <a href="/verify/">check the download</a>.</li>
+        <li><code>SHA256SUMS</code> and its signature, <code>SHA256SUMS.sig</code>.</li>
         <li>The Omarchy release it's built from, and the full package list with versions.</li>
-        <li>A difference report against the official Omarchy ISO of the same release.</li>
+        <li>The difference report against the official Omarchy ISO.</li>
         <li>The public build log.</li>
       </ul>
     </section>
     <section>
       <h2>Next</h2>
-      <ol>
-        <li><a href="/verify/">Verify the download</a>.</li>
-        <li><a href="/write/">Write the stick</a>.</li>
-        <li>Hold <kbd>Option</kbd> as the Mac starts.</li>
+      <ol class="next">
+        <li><a href="/verify/">Verify the download</a></li>
+        <li><a href="/write/">Flash a USB stick</a></li>
+        <li>Hold <kbd>Option</kbd> as the Mac starts</li>
       </ol>
-      <p>Meanwhile, see which Macs are already tested on {{DIO}}.</p>
+      <p class="quiet">Meanwhile, see which Macs are already tested on {{DIO}}.</p>
     </section>
   </div>
 </div>

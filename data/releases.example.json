@@ -1,16 +1,22 @@
 [
   {
-    "version": "0.5.0",
+    "version": "4.0.4-1",
     "date": "2026-11-02",
-    "omarchy": "4.0.5",
-    "iso": "https://get.example.com/omaboot-live-0.5.0.iso",
+    "omarchy": "4.0.4",
+    "iso": "https://get.example.com/omaboot-live-4.0.4-1.iso",
     "size": 1987654321,
     "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "sha256sums": "https://get.example.com/SHA256SUMS",
     "signature": "https://get.example.com/SHA256SUMS.sig",
-    "packages": "https://get.example.com/omaboot-live-0.5.0-packages.txt",
-    "difference": "https://get.example.com/omaboot-live-0.5.0-difference.html",
+    "packages": "https://get.example.com/omaboot-live-4.0.4-1-packages.txt",
+    "difference": "https://get.example.com/omaboot-live-4.0.4-1-difference.html",
     "build_log": "https://github.com/example/omaboot-iso/actions/runs/1",
+    "checks": {
+      "official_packages": 482,
+      "added": 14,
+      "files_differing": 8764,
+      "unexplained": 0
+    },
     "notes": "One line on what changed. Optional."
   }
 ]

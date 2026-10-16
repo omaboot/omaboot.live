@@ -8,10 +8,14 @@ Words and art means:
   - the copy: pages/*.html and the text in data/editions.json and data/tests.json;
   - the pictures: assets/editions/ (the editions' startup-disk icons) and assets/screens/
     (OmaBoot? Live's screens);
-  - the drawings site_build.py makes: Boot, the pixel wordmark and the favicon.
+  - the drawings: Boot and the favicon (made by site_build.py), the iMac drawing (data/hero-imac.svg)
+    and the T2 utility drawings in pages/docs.html.
+
+The wordmark (data/wordmark.json) is outlines of BigBlue Terminal 437 by VileR (int10h.org) and is
+under CC BY-SA 4.0 instead: https://creativecommons.org/licenses/by-sa/4.0/
 
 Attribute them to "The OmaBoot? authors" with a link to https://omaboot.live.
 
 Everything else (site_build.py's code, site.css, tools/, the Makefile) is under the MIT licence
-in LICENSE. The JetBrains Mono fonts in assets/fonts/ are under the SIL Open Font License 1.1
-(assets/fonts/OFL.txt). data/allowed_signers holds the release keys' public halves.
+in LICENSE. The fonts in assets/fonts/ keep their own licences: Commit Mono and iM Writing Quattro
+under the SIL Open Font License 1.1 (their files beside them), the Omarchy Font under MIT. data/allowed_signers holds the release keys' public halves.

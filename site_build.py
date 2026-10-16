@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Build omaboot.live: the public site of OmaBoot? Live. Static, no JavaScript, Python stdlib only.
+"""Build omaboot.live: the public site of OmaBoot? Live. Static, Python stdlib only. One small
+script of our own, copy.js, adds copy buttons to the commands; the pages work without it.
 
 Usage: site_build.py [--releases FILE] [--out DIR]
        site_build.py --serve [PORT] [--out DIR]
@@ -10,14 +11,16 @@ data/tests.json (the criteria and how OmaBoot? Live tests each one, for Docs), d
 (the release keys) and pages/*.html (the copy: each page is an HTML fragment whose first lines are
 <!-- title: ... --> and <!-- description: ... -->), and writes dist/: one directory per page, one
 per test under docs/, 404.html, site.css, assets/ (screens drawn by boot-live's tools/screens,
-the editions' startup-disk icons, JetBrains Mono), favicon.svg, allowed_signers, robots.txt,
+the editions' startup-disk icons, the fonts), copy.js, favicon.svg, allowed_signers, robots.txt,
 sitemap.xml, _headers and _redirects for Cloudflare Pages. Boot and the OmaBoot? wordmark are
-drawn here as inline SVG from the prototype's pixels.
+drawn here as inline SVG (Boot from the prototype's pixels, the wordmark from data/wordmark.json),
+and the home page's iMac drawing is data/hero-imac.svg (tools/hero_drawing.py).
 
 Tokens in pages: {{BOOT}} {{BOOT pleased}} (Boot's sprite), {{WORDMARK}}, {{DIO}} (a link to
 DoesItOmarchy.com), {{EDITIONS}} (the editions, with each one's newest release), {{AREAS}} (the
 test areas as tiles), {{DOCS}} (the list of tests), {{SIGNERS}} (the keys), {{FP_RELEASE}},
-{{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}.
+{{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}, {{HERO_ART}} (the
+iMac drawing), {{VERIFIED}} (what the newest release was checked for).
 <!-- TODO(owner): ... --> comments are listed on every build and left out of dist/.
 
 After writing, the build checks dist/: every internal link resolves, and no token, TODO or
@@ -47,11 +50,9 @@ OCTOCAT = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
            ".54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z")
 
 # Navigation order; the slug is the URL path and the pages/ file name ("index" is /).
-NAV = [("download", "Download"), ("docs", "Docs")]
-DOCS_GUIDES = [("write", "Write the stick", "Any USB stick of 4 GB or more, from macOS, Linux or Windows. Then hold Option."),
-               ("verify", "Verify a download", "Check the checksum and the signature before you write the stick."),
-               ("privacy", "What gets sent", "What a report holds, where it goes, and what boot.watch keeps (nothing).")]
-FOOTER_ONLY = ["write", "verify", "privacy"]  # the guides: in Docs and the footer, so the top line fits a phone
+NAV = [("download", "Download"), ("verify", "Verify"), ("docs", "Docs")]
+GUIDES = ["write", "privacy"]  # in Docs and the footer, not the bar; they count as Docs there
+FOOTER_ONLY = GUIDES
 WIDE = {"index", "download", "docs"}  # pages that lay out their own width; the others read as prose
 
 # ── Palette (boot-wip/boot-live-proto.src.html, "OmaBoot?") ─────────────────────────────────
@@ -114,36 +115,14 @@ def boot_svg(face="neutral", cls="boot", label="Boot"):
             f'<g class="tip">{pixel_paths(tip, PIX)}</g></svg>')
 
 
-# ── The wordmark: the prototype's 5×7 letters ───────────────────────────────────────────────
-BIG = {
-    "O": [".111.", "1...1", "1...1", "1...1", "1...1", "1...1", ".111."],
-    "m": [".....", ".....", "11.1.", "1.1.1", "1.1.1", "1.1.1", "1.1.1"],
-    "a": [".....", ".....", ".111.", "....1", ".1111", "1...1", ".1111"],
-    "B": ["1111.", "1...1", "1...1", "1111.", "1...1", "1...1", "1111."],
-    "o": [".....", ".....", ".111.", "1...1", "1...1", "1...1", ".111."],
-    "t": [".1...", ".1...", "1111.", ".1...", ".1...", ".1..1", "..11."],
-    "?": [".111.", "1...1", "....1", "...1.", "..1..", ".....", "..1.."],
-    "L": ["1....", "1....", "1....", "1....", "1....", "1....", "11111"],
-    "i": ["..1..", ".....", ".11..", "..1..", "..1..", "..1..", ".111."],
-    "v": [".....", ".....", "1...1", "1...1", "1...1", ".1.1.", "..1.."],
-    "e": [".....", ".....", ".111.", "1...1", "11111", "1....", ".111."],
-}
-
-
-def wordmark_svg(word="OmaBoot? Live", cls="wordmark", label="OmaBoot? Live"):
-    """Letters in the text colour, the question mark in violet (the accent)."""
-    rows, x = [""] * 7, 0
-    for ch in word:
-        if ch == " ":
-            rows = [r + "..." for r in rows]
-            continue
-        mark = "q" if ch == "?" else "1"
-        rows = [r + g.replace("1", mark) + "." for r, g in zip(rows, BIG[ch])]
-    w = len(rows[0]) - 1
-    paths = pixel_paths(rows, {"1": "currentColor", "q": "var(--accent)"})
-    paths = paths.replace('fill="var(--accent)"', 'class="q"')
+# ── The wordmark: BigBlue Terminal 437's letters as outlines (owner's pick C3, 2026-10-16) ───
+def wordmark_svg(cls="wordmark", label="OmaBoot? Live"):
+    """Letters in the text colour, the question mark in violet (the accent). The outlines are made
+    once by tools/wordmark.py (data/wordmark.json), in the font's pixels: 9 tall."""
+    wm = json.load(open(os.path.join(DATA, "wordmark.json")))
     aria = f'role="img" aria-label="{html.escape(label)}"' if label else 'aria-hidden="true"'
-    return f'<svg class="{cls}" viewBox="0 0 {w} 7" shape-rendering="crispEdges" {aria}>{paths}</svg>'
+    return (f'<svg class="{cls}" viewBox="{wm["x"]:g} {wm["y"]:g} {wm["width"]:g} {wm["height"]:g}" shape-rendering="crispEdges" {aria}>'
+            f'<path fill="currentColor" d="{wm["letters"]}"/><path class="q" d="{wm["q"]}"/></svg>')
 
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -2 16 16" shape-rendering="crispEdges">'
@@ -190,7 +169,7 @@ def newest(rels, edition):
     return next((r for r in rels if r.get("edition", "live") == edition), None)
 
 
-def edition_card(e, r, full):
+def edition_card(e, r, full, earlier=""):
     """One edition as a card: its startup-disk icon, what it is, and its newest release or when."""
     main = " main" if e.get("main") else ""
     head = (f'<img class="disk" src="/assets/editions/{e["id"]}.png" width="64" height="64" alt="">'
@@ -203,17 +182,55 @@ def edition_card(e, r, full):
             a = lambda k, t: f'<a href="{html.escape(r[k])}">{t}</a>'
             notes = f'<p>{html.escape(r["notes"])}</p>' if r.get("notes") else ""
             get += f'''{notes}<p class="fine">Built from Omarchy {html.escape(r["omarchy"])} · <code>{html.escape(name)}</code></p>
-<p class="tag">SHA256</p><pre><code>{r["sha256"]}</code></pre>
+<p class="tag">SHA256</p><pre class="wrap" data-label="the SHA256"><code>{r["sha256"]}</code></pre>
 <ul class="files"><li>{a("sha256sums", "SHA256SUMS")}</li><li>{a("signature", "SHA256SUMS.sig")}</li><li><a href="/allowed_signers">allowed_signers</a></li>
-<li>{a("packages", "Package list")}</li><li>{a("difference", "Difference report")}</li><li>{a("build_log", "Build log")}</li></ul>'''
+<li>{a("packages", "Package list")}</li><li>{a("difference", "Difference report")}</li><li>{a("build_log", "Build log")}</li></ul>
+{earlier}'''
     else:
         get = f'<p class="get"><span class="status">{html.escape(e["status"])}</span><span class="quiet">{html.escape(e["size"])}</span></p>'
     return f'<article class="edition ed-{e["id"]}{main}"><div class="ed-head">{head}</div><p>{html.escape(e["line"])}</p>{get}</article>'
 
 
+def earlier_html(rels, edition):
+    """The edition's older releases, newest first, as plain links to each one's image."""
+    old = [r for r in rels if r.get("edition", "live") == edition][1:]
+    if not old:
+        return ""
+    links = " / ".join(f'<a href="{html.escape(r["iso"])}">{html.escape(r["version"])}</a>' for r in old)
+    return f'<p class="earlier"><span class="tag">Earlier</span> {links}</p>'
+
+
+# What a release's difference report found, for the Download page's Verify section. The numbers
+# are optional in releases.json ("checks"); without them the tiles say what each check is.
+CHECKS = [("official_packages", "official packages, each the official ISO's own file (same SHA-256)"),
+          ("added", "packages added, each listed with why"),
+          ("unexplained", "unexplained differences, of {files_differing} files that differ")]
+
+
+def verified_html(rels):
+    r = newest(rels, "live")
+    c = (r or {}).get("checks", {})
+    tiles = []
+    if c:
+        for k, words in CHECKS:
+            tiles.append(f'<li><b>{c[k]:,}</b><span>{html.escape(words.format(**{x: f"{v:,}" for x, v in c.items()}))}</span></li>')
+    else:
+        tiles += ['<li><b>SHA-256</b><span>every package: the official ISO\'s own file, or an addition listed with why</span></li>',
+                  '<li><b>0</b><span>unexplained differences: a release ships only when every file that differs is explained</span></li>']
+    tiles += ['<li><b>ED25519</b><span>the checksums are signed; the key never touches the build machine</span></li>',
+              '<li><b>Public</b><span>built by GitHub Actions from a tagged commit; the build log is linked</span></li>']
+    report = (f'<a href="{html.escape(r["difference"])}">The full difference report for {html.escape(r["version"])}</a>'
+              if r else "Each release links its full difference report")
+    return (f'<ul class="vtiles">{"".join(tiles)}</ul>'
+            f'<p class="method"><b>How:</b> each release is built from Omarchy\'s own ISO build at a named commit, '
+            f'then compared with the official ISO of the same release, package by package and file by file. '
+            f'Every difference needs a rule that explains it.</p>'
+            f'<p class="method-links">{report} / <a href="/verify/">Verify your download</a></p>')
+
+
 def editions_html(rels, full=False):
     eds = load_editions()
-    cards = "".join(edition_card(e, newest(rels, e["id"]), full) for e in eds)
+    cards = "".join(edition_card(e, newest(rels, e["id"]), full, earlier_html(rels, e["id"]) if full else "") for e in eds)
     return f'<div class="editions">{cards}</div>'
 
 
@@ -336,8 +353,10 @@ def fill(body, cfg, rels, todos, slug, tests):
         "{{OMARCHY}}": f'<a href="{cfg["omarchy"]}">omarchy.org</a>',
         "{{EDITIONS}}": editions_html(rels), "{{EDITIONS full}}": editions_html(rels, full=True),
         "{{METER high}}": meter("high"), "{{METER medium}}": meter("medium"), "{{METER none}}": meter("none"),
-        "{{DOWNLOAD_SAY}}": f'<div class="say">{boot_svg("pleased", label="")}<p>fresh build. check it before you write it.</p></div>' if rels
+        "{{DOWNLOAD_SAY}}": f'<div class="say">{boot_svg("pleased", label="")}<p>fresh build. check it before you flash it.</p></div>' if rels
                              else f'<div class="say">{boot_svg(label="")}<p>not out yet. I\'m still being tested on real Macs.</p></div>',
+        "{{HERO_ART}}": open(os.path.join(DATA, "hero-imac.svg")).read().strip(),
+        "{{VERIFIED}}": verified_html(rels),
         "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{SIGNERS}}": signers_html(),
         "{{FP_RELEASE}}": signers()[0][4], "{{ISO}}": html.escape(iso),
         "{{SOURCE}}": link(cfg["source"], "the source code") + ("" if cfg["source"] else " (published on GitHub with the first release)"),
@@ -359,10 +378,11 @@ def read_page(slug):
     return title, desc, body
 
 
-def document(cfg, slug, title, desc, body):
+def document(cfg, rels, slug, title, desc, body):
     path = "/" if slug == "index" else f"/{slug}/"
-    section = "docs" if slug.startswith("docs/") or slug in [g for g, _, _ in DOCS_GUIDES] else slug
+    section = "docs" if slug.startswith("docs/") or slug in GUIDES else slug
     nav = "".join(f'<a href="/{s}/"{" aria-current=\"page\"" if s == section else ""}>{t}</a>' for s, t in NAV)
+    nav += f'<a class="out" href="{cfg["doesitomarchy"]}">DoesItOmarchy.com<span aria-hidden="true"> ↗</span></a>'
     nav += (f'<a class="repo" href="{cfg["repo"]}" rel="noopener">'
             f'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="{OCTOCAT}"/></svg>{cfg["repo"].rsplit("/", 1)[1]}</a>')
     if slug not in WIDE:
@@ -370,7 +390,10 @@ def document(cfg, slug, title, desc, body):
     cls = "page-" + slug.replace("/", "-") + (" page-test" if slug.startswith("docs/") else "")
     full_title = cfg["name"] if slug == "index" else f"{title} · {cfg['name']}"
     url = cfg["site"] + path
-    source = f' · {link(cfg["source"], "Source")}' if cfg["source"] else ""
+    source = f' / {link(cfg["source"], "Source")}' if cfg["source"] else ""
+    latest = newest(rels, "live")
+    download = f'Download {html.escape(latest["version"])}' if latest else "Download"
+    keys = "".join(f'<span>{"Release" if c == "omaboot-release" else "Backup"} key <code>{fp}</code></span>' for _, _, _, c, fp in signers())
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -381,6 +404,7 @@ def document(cfg, slug, title, desc, body):
 <link rel="canonical" href="{url}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css">
+<script src="/copy.js" defer></script>
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{cfg["name"]}">
@@ -403,9 +427,11 @@ def document(cfg, slug, title, desc, body):
 {body.strip()}
 </main>
 <footer class="site"><div class="bar">
-  <p>OmaBoot? Live is made by <a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>. <strong>A community site. Not officially affiliated with <a href="https://omarchy.org" rel="noopener">Omarchy</a> or the <a href="https://omarchy.org/foundation/" rel="noopener">Omacom Foundation</a>.</strong></p>
-  <p><a href="/write/">Write the stick</a> · <a href="/verify/">Verify</a> · <a href="/privacy/">Privacy</a> · <a href="https://status.boot.watch">boot.watch status</a>{source}</p>
-  <p>No cookies, no analytics, no third-party scripts.</p>
+  <p>OmaBoot? Live is made by the same people as <a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>.</p>
+  <p><strong>A community site. Not officially affiliated with <a href="https://omarchy.org" rel="noopener">Omarchy</a> or the <a href="https://omarchy.org/foundation/" rel="noopener">Omacom Foundation</a>.</strong></p>
+  <p class="links"><a href="/download/">{download}</a> / <a href="/write/">Flash a USB stick</a> / <a href="/verify/">Verify</a> / <a href="/docs/">Docs</a> / <a href="/privacy/">Privacy</a> / <a href="https://status.boot.watch">boot.watch status</a>{source}</p>
+  <p class="keys"><a href="/verify/#keys">Signing keys</a> {keys}</p>
+  <p class="fine">No cookies, no analytics, no third-party scripts.</p>
 </div></footer>
 </body>
 </html>
@@ -418,9 +444,12 @@ HEADERS = """/*
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'none'; script-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 
 /site.css
+  Cache-Control: public, max-age=3600
+
+/copy.js
   Cache-Control: public, max-age=3600
 
 /assets/*
@@ -446,12 +475,13 @@ def build(out, releases_file):
     for c in tests["criteria"]:
         pages.append((f"docs/{c['slug']}", c["title"], f"How OmaBoot? Live tests {c['title'].lower()} ({c['id']}) on an Intel Mac, how it decides, and how sure it is.", test_body(tests, c)))
     for slug, title, desc, body in pages:
-        doc = document(cfg, slug, title, desc, fill(body, cfg, rels, todos, slug, tests))
+        doc = document(cfg, rels, slug, title, desc, fill(body, cfg, rels, todos, slug, tests))
         target = os.path.join(out, "404.html") if slug == "404" else os.path.join(out, "" if slug == "index" else slug, "index.html")
         os.makedirs(os.path.dirname(target), exist_ok=True)
         open(target, "w").write(doc)
     slugs += [f"docs/{c['slug']}" for c in tests["criteria"]]
     shutil.copy2(os.path.join(HERE, "site.css"), os.path.join(out, "site.css"))
+    shutil.copy2(os.path.join(HERE, "copy.js"), os.path.join(out, "copy.js"))
     shutil.copytree(os.path.join(HERE, "assets"), os.path.join(out, "assets"))
     shutil.copy2(os.path.join(DATA, "allowed_signers"), os.path.join(out, "allowed_signers"))
     open(os.path.join(out, "favicon.svg"), "w").write(FAVICON)

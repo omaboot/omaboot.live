@@ -4,13 +4,16 @@
    Palette: the tester's own (boot-live internal/grid OmaBoot): near-black, cool greys, violet
    for the site's accent, Boot in cyan, amber, the editions' disk colours. Green is only ever a
    passed test, so the site uses none.
-   Type: Inter (self-hosted, OFL) for headings, light and tight; JetBrains Mono (self-hosted,
-   OFL) for everything else: reading text like the console's, and the small uppercase labels. */
-@font-face { font-family: "Inter"; src: url("/assets/fonts/Inter-Latin.woff2") format("woff2"); font-weight: 300 600; font-display: swap; }
+   Type (owner's picks, 2026-10-16): iA Writer Quattro for headings, as Nerd Fonts' iM Writing
+   Quattro (OFL; renamed there for the licence's reserved names); Commit Mono (OFL) for everything
+   else: reading text like the console's, and the small uppercase labels. Both self-hosted, cut to
+   Latin. The wordmark is BigBlue Terminal's letters as outlines (data/wordmark.json). */
+@font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 /* the Omarchy wordmark as a font (github.com/markcuda/Omarchy-Font, MIT): only for the word Omarchy in the hero */
 @font-face { font-family: "Omarchy Font"; src: url("/assets/fonts/OmarchyFont.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "JetBrains Mono"; src: url("/assets/fonts/JetBrainsMono-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "JetBrains Mono"; src: url("/assets/fonts/JetBrainsMono-SemiBold.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
+@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 
 :root {
   /* surfaces and strokes: the console's black, raised in small cool steps */
@@ -45,8 +48,8 @@
   --ed-live: #8a78e6;    --ed-live-hi: #b8a9ff;
   --ed-omarchy: #4fa6ad; --ed-omarchy-hi: #8fe3e8;
   --ed-lab: #c98f3a;     --ed-lab-hi: #ffd479;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: "iM Writing Quattro", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Commit Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --gutter: 20px;
   color-scheme: dark;
 }
@@ -65,10 +68,10 @@ a:hover { text-decoration-thickness: 2px; }
 .wrap, .bar { max-width: 1120px; margin: 0 auto; padding-inline: var(--gutter); }
 .prose { max-width: 760px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; }
 
-h1, h2, h3 { font-family: var(--sans); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+h1, h2, h3 { font-family: var(--sans); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
 h1 { font-size: clamp(30px, 4.4vw, 40px); margin: 0 0 14px; letter-spacing: -0.03em; }
 h2 { font-size: 24px; margin: 44px 0 12px; }
-h3 { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; margin: 28px 0 8px; }
+h3 { font-size: 18px; letter-spacing: -0.01em; margin: 28px 0 8px; }
 p, ul, ol { margin: 0 0 14px; }
 ul, ol { padding-left: 22px; }
 li { margin-bottom: 6px; }
@@ -87,12 +90,14 @@ kbd { font: 0.84em var(--mono); border: 1px solid var(--line-2); border-bottom-w
 header.site { background: var(--bg); color: var(--ink); border-bottom: 1px solid var(--line); }
 header.site .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding-block: 14px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
-.brand .wordmark { height: 15px; width: auto; color: var(--ink); }
+.brand .wordmark { height: 18px; width: auto; color: var(--ink); }  /* 2 px a font pixel: crisp */
 .brand .wordmark .q { fill: var(--accent); }
 nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; font: 400 13px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
 header.site nav a { color: var(--quiet); text-decoration: none; padding-block: 4px; }
 header.site nav a:hover, header.site nav a[aria-current="page"] { color: var(--ink); }
 header.site nav a[aria-current="page"] { box-shadow: inset 0 -1px 0 var(--accent); }
+header.site nav a.out { color: var(--accent); }
+header.site nav a.out:hover { color: var(--ink); }
 header.site nav a.repo { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line-2); border-radius: 2px; text-transform: none; letter-spacing: 0.02em; }
 header.site nav a.repo:hover { border-color: var(--quiet); }
 header.site nav a.repo svg { width: 15px; height: 15px; flex: none; }
@@ -130,15 +135,19 @@ svg.boot .lids, svg.boot .tip { opacity: 0; }
 .hero {
   background:
     radial-gradient(55% 70% at 80% 40%, rgba(138, 120, 230, 0.16), transparent 70%),
-    radial-gradient(1px 1px at 1px 1px, rgba(230, 232, 236, 0.07) 1px, transparent 1.5px) 0 0 / 12px 12px,
     var(--bg);
   color: var(--ink);
   border-bottom: 1px solid var(--line);
   overflow: hidden;
+  position: relative;
 }
-.hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; padding-block: 72px 80px; }
+/* the iMac10,1 from the rear, its ports labelled with the tests (data/hero-imac.svg; owner's pick D3) */
+.hero-art { position: absolute; left: 50%; bottom: 0; width: 1440px; height: 720px; max-width: none; margin-left: -720px; color: var(--tn-purple); opacity: 0.22; pointer-events: none; }
+.hero-art .labels { font-family: var(--mono); }
+.hero-grid { position: relative; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; padding-block: 72px 132px; }  /* room under the laptop for the drawing's ports */
 .hero .eyebrow { font: 400 12px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--boot); margin: 0 0 18px; }
-.hero h1 { font-size: clamp(40px, 6vw, 68px); font-weight: 400; line-height: 1.0; letter-spacing: -0.04em; margin: 0 0 18px; }
+.hero h1 { font-size: clamp(40px, 6vw, 68px); line-height: 1.0; letter-spacing: -0.035em; margin: 0 0 18px; }
 /* "Omarchy" in its own wordmark letters, Tokyo Night purple, with a light sweeping across now and then */
 .hero h1 .omarchy { font-family: "Omarchy Font", var(--mono); font-size: 0.83em; letter-spacing: 0; white-space: nowrap; color: var(--tn-purple);
   background: linear-gradient(105deg, var(--tn-purple) 0 42%, #f1eaff 50%, var(--tn-purple) 58% 100%) 100% 0 / 300% 100% no-repeat;
@@ -192,7 +201,7 @@ main { counter-reset: band; }
 .ed-lab { --ed: var(--ed-lab); --ed-hi: var(--ed-lab-hi); }
 .ed-head { display: flex; align-items: center; gap: 14px; }
 .disk { width: 64px; height: 64px; image-rendering: pixelated; flex: none; }
-.edition h3 { margin: 0; font-size: 21px; font-weight: 400; letter-spacing: -0.02em; }
+.edition h3 { margin: 0; font-size: 21px; letter-spacing: -0.02em; }
 .edition .role { margin: 0 0 4px; font: 400 12px/1.3 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ed-hi); }
 .edition > p { margin: 0; color: var(--quiet); }
 .edition .get { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-top: 10px; }
@@ -299,13 +308,18 @@ ul.keys p { margin: 0 0 4px; }
 /* the FAQ, closing Docs */
 .docs-faq { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line); }
 .docs-faq h2 { margin: 0 0 4px; font-size: clamp(26px, 3.2vw, 34px); }
-.docs-faq h3 { margin: 36px 0 8px; font-size: 20px; font-weight: 400; scroll-margin-top: 16px; }
+.docs-faq h3 { margin: 36px 0 8px; font-size: 20px; scroll-margin-top: 16px; }
 .docs-faq p { max-width: 70ch; color: var(--quiet); }
 
 footer.site { background: var(--bg); color: var(--quiet); font-size: 13px; border-top: 1px solid var(--line); }
 footer.site .bar { padding-block: 28px 44px; }
-footer.site p { margin: 0 0 6px; }
+footer.site p { margin: 0 0 8px; }
 footer.site a { color: var(--ink); }
+footer.site .links a, footer.site .keys a { text-decoration: none; }
+footer.site .links a:hover, footer.site .keys a:hover { text-decoration: underline; }
+footer.site .keys { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; color: var(--faint); }
+footer.site .keys code { background: none; border: 0; padding: 0; color: var(--quiet); font-size: 12px; }
+footer.site .fine { color: var(--faint); margin-top: 14px; }
 
 @media (max-width: 860px) {
   .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; padding-block: 48px 60px; }
@@ -350,3 +364,109 @@ footer.site a { color: var(--ink); }
 .em-match { background: color-mix(in srgb, var(--accent-deep) 20%, var(--bg)); color: var(--ink); outline: 1px solid var(--accent-deep); }
 .em-tag { margin-left: 8px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 .exact-map figcaption { padding-top: 12px; border-top: 1px dashed var(--line-2); color: var(--quiet); }
+
+/* ── Copy buttons (copy.js) ─────────────────────────────────────────────────────────────── */
+.codebox { position: relative; }
+pre.has-copy { padding-right: 76px; }
+button.copy { position: absolute; top: 7px; right: 7px; font: 400 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--quiet); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 2px; padding: 6px 8px; cursor: pointer; }
+button.copy:hover { color: var(--ink); border-color: var(--quiet); }
+pre.out { border-style: dashed; color: var(--quiet); }
+pre mark { background: none; color: var(--accent); }
+
+/* ── Download: what each release is checked for ─────────────────────────────────────────── */
+.verified { margin: 0 0 48px; }
+.section-head.plain::before { content: none; }
+ul.vtiles { list-style: none; padding: 1px; margin: 0 0 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; }
+ul.vtiles li { outline: 1px solid var(--line); background: var(--panel); margin: 0; padding: 18px; display: grid; gap: 8px; align-content: start; }
+ul.vtiles b { font: 700 28px/1 var(--sans); color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+ul.vtiles span { font-size: 13px; line-height: 1.5; color: var(--quiet); }
+.method { max-width: 80ch; color: var(--quiet); margin-bottom: 8px; }
+.method b { color: var(--ink); font-weight: 400; }
+.method-links { font-size: 14px; }
+.earlier { margin: 0; font-size: 13px; color: var(--quiet); }
+.earlier .tag { display: inline; margin: 0 8px 0 0; }
+ul.plain-list { padding-left: 18px; color: var(--quiet); }
+ol.next { padding-left: 22px; }
+
+/* ── Verify: the checks as numbered steps ───────────────────────────────────────────────── */
+ol.steps { list-style: none; padding: 0; margin: 28px 0 40px; counter-reset: step; display: grid; gap: 16px; }
+li.step { counter-increment: step; margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 20px 22px 8px; scroll-margin-top: 16px; }
+li.step h2 { margin: 0 0 14px; font-size: 20px; display: flex; align-items: baseline; gap: 12px; }
+li.step h2::before { content: counter(step); font: 400 12px/1 var(--mono); color: var(--bg); background: var(--accent); padding: 4px 7px; border-radius: 2px; }
+li.step pre { background: var(--bg); }
+ul.files-needed { list-style: none; padding: 0; display: grid; gap: 6px; }
+ul.files-needed li { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; margin: 0; }
+ul.files-needed span { color: var(--quiet); font-size: 14px; }
+.os-rows { display: grid; gap: 2px; }
+.os-row { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 12px; align-items: start; }
+.os-row .os, .expect { font: 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin: 12px 0 6px; }
+.os-row pre { margin-bottom: 8px; }
+.stop { border-left: 2px solid var(--amber); padding-left: 12px; }
+dl.trust { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 12px 22px; margin: 0 0 18px; }
+dl.trust dt { font: 12px/1.7 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+dl.trust dd { margin: 0; color: var(--quiet); }
+@media (max-width: 560px) { .os-row, dl.trust { grid-template-columns: minmax(0, 1fr); gap: 2px; } .os-row .os { margin-bottom: 2px; } dl.trust dd { margin-bottom: 10px; } }
+
+/* ── Flash a USB stick ──────────────────────────────────────────────────────────────────── */
+.page-write .prose { max-width: 1120px; }
+.page-write .prose > :is(h1, .say, .needs, p, ul, h2) { max-width: 760px; }
+dl.needs { display: flex; flex-wrap: wrap; gap: 1px; padding: 1px; margin: 0 0 14px; }
+dl.needs > div { flex: 1 1 200px; outline: 1px solid var(--line); background: var(--panel); padding: 12px 16px; }
+dl.needs dt { font: 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin-bottom: 4px; }
+dl.needs dd { margin: 0; }
+.oses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; padding: 1px; margin: 28px 0 14px; }
+@media (max-width: 960px) { .oses { grid-template-columns: minmax(0, 1fr); } }
+.os-card { outline: 1px solid var(--line); background: var(--panel); padding: 20px; min-width: 0; scroll-margin-top: 16px; }
+.os-card h2 { margin: 0 0 12px; font-size: 22px; }
+.os-card .tag { margin-top: 16px; }
+.os-card pre { background: var(--bg); }
+ol.cmd-steps { padding-left: 20px; margin: 0; }
+ol.cmd-steps p { margin: 0 0 6px; color: var(--quiet); font-size: 14px; }
+.os-card .note, .warn { font-size: 14px; color: var(--quiet); }
+.warn { border-left: 2px solid var(--amber); padding-left: 12px; }
+.boot-it { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 28px; align-items: center; margin: 0 0 18px; max-width: 1000px; }
+@media (max-width: 760px) { .boot-it { grid-template-columns: minmax(0, 1fr); } }
+ol.boot-steps { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+ol.boot-steps li { margin: 0; }
+figure.picker { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 12px 12px 14px; }
+figure.picker svg { display: block; width: 100%; height: auto; color: var(--quiet); }
+figure.picker text { fill: var(--quiet); font: 13px var(--mono); }
+figure.picker text.pick { fill: var(--ink); }
+figure.picker .pick-line { stroke: var(--accent); stroke-width: 2; }
+figure.picker .arrow { stroke: var(--accent); }
+figure.picker image { image-rendering: pixelated; }
+figure.picker figcaption, .ui-fig figcaption { font-size: 12px; color: var(--faint); margin-top: 8px; }
+ul.edge { list-style: none; padding: 0; display: grid; gap: 6px; }
+ul.edge li { margin: 0; border-left: 1px solid var(--line-2); padding-left: 12px; color: var(--quiet); }
+ul.edge b { color: var(--ink); font-weight: 400; }
+
+/* ── Docs: T2 Macs, step by step, with Apple's utility redrawn ─────────────────────────── */
+.docs-t2 { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.docs-t2 h2 { margin: 0 0 8px; font-size: clamp(26px, 3.2vw, 34px); }
+ol.t2-steps { counter-reset: step; list-style: none; padding: 0; margin: 24px 0 18px; display: grid; gap: 18px; max-width: 760px; }
+ol.t2-steps > li { counter-increment: step; margin: 0; display: grid; grid-template-columns: 2em minmax(0, 1fr); column-gap: 10px; }
+ol.t2-steps > li::before { content: counter(step); grid-row: span 2; font: 400 12px/1 var(--mono); color: var(--bg); background: var(--accent); padding: 4px 0; border-radius: 2px; text-align: center; height: fit-content; margin-top: 4px; }
+ol.t2-steps p { margin: 0; color: var(--quiet); }
+ol.t2-steps b { color: var(--ink); font-weight: 400; }
+.ui-fig { margin: 14px 0 0; grid-column: 2; }
+.ui-fig svg { display: block; width: 100%; max-width: 520px; height: auto; font: 13px var(--mono); }
+.ui-fig text { fill: var(--quiet); }
+.ui-fig .ui-on, .ui-fig .ui-title, .ui-fig .ui-h { fill: var(--ink); }
+.ui-fig .ui-h { font-weight: 700; }
+.ui-bar { fill: var(--panel-2); }
+.ui-menu, .ui-win { fill: var(--panel); stroke: var(--line-2); }
+.ui-hi { fill: var(--accent-soft); stroke: var(--accent-deep); }
+.ui-ph { fill: var(--line-2); }
+.ui-dot { fill: none; stroke: var(--line-2); }
+.ui-radio { fill: none; stroke: var(--quiet); }
+.ui-radio.on { stroke: var(--accent); }
+.ui-dotin { fill: var(--accent); }
+.ui-rule { stroke: var(--line-2); }
+
+/* ── Home: Your exact Mac, in three lines ───────────────────────────────────────────────── */
+ol.exact-steps { list-style: none; padding: 0; margin: 0; counter-reset: step; display: grid; gap: 14px; }
+ol.exact-steps li { counter-increment: step; margin: 0; padding-left: 36px; position: relative; color: var(--quiet); }
+ol.exact-steps li::before { content: counter(step, decimal-leading-zero); position: absolute; left: 0; top: 0.15em; font: 12px/1.4 var(--mono); color: var(--accent); }
+ol.exact-steps b { display: block; color: var(--ink); font-weight: 400; }
+.os-row pre code, .os-card pre code { white-space: pre-wrap; overflow-wrap: anywhere; }

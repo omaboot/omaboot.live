@@ -3,33 +3,52 @@
 <h1>Verify the download</h1>
 <div class="say">{{BOOT}}<p>trust, but check. it takes a minute.</p></div>
 <p class="lede">Two checks. The checksum shows the file arrived whole. The signature shows the checksums come from us.</p>
-<p>Put these in one folder: the <code>.iso</code>, <code>SHA256SUMS</code> and <code>SHA256SUMS.sig</code> from the <a href="/download/">Download</a> page, and <a href="/allowed_signers"><code>allowed_signers</code></a>.</p>
 
-<h2 id="checksum">1. The checksum</h2>
-<p>Linux:</p>
-<pre><code>sha256sum -c --ignore-missing SHA256SUMS</code></pre>
-<p>macOS:</p>
-<pre><code>grep {{ISO}} SHA256SUMS | shasum -a 256 -c</code></pre>
+<ol class="steps">
+  <li class="step" id="files">
+    <h2>Get the files</h2>
+    <p>Into one folder:</p>
+    <ul class="files-needed">
+      <li><code>{{ISO}}</code><span>the image, from <a href="/download/">Download</a></span></li>
+      <li><code>SHA256SUMS</code><span>its checksum, beside the image</span></li>
+      <li><code>SHA256SUMS.sig</code><span>the signature on the checksums</span></li>
+      <li><a href="/allowed_signers"><code>allowed_signers</code></a><span>our public keys</span></li>
+    </ul>
+  </li>
 
-<p>Both should print <code>{{ISO}}: OK</code>. On Windows, run <code>Get-FileHash {{ISO}}</code> in PowerShell and compare the hash with the line in <code>SHA256SUMS</code>.</p>
+  <li class="step" id="checksum">
+    <h2>Check the checksum</h2>
+    <div class="os-rows">
+      <div class="os-row"><p class="os">Linux</p><pre data-label="Linux"><code>sha256sum -c --ignore-missing SHA256SUMS</code></pre></div>
+      <div class="os-row"><p class="os">macOS</p><pre data-label="macOS"><code>grep {{ISO}} SHA256SUMS | shasum -a 256 -c</code></pre></div>
+      <div class="os-row"><p class="os">Windows</p><pre data-label="Windows PowerShell"><code>Get-FileHash {{ISO}}</code></pre></div>
+    </div>
+    <p class="expect">Linux and macOS print</p>
+    <pre class="out"><code>{{ISO}}: OK</code></pre>
+    <p class="quiet">On Windows, compare the hash it prints with the line for the image in <code>SHA256SUMS</code>.</p>
+  </li>
 
-<h2 id="signature">2. The signature</h2>
-<pre class="wrap"><code>ssh-keygen -Y verify -f allowed_signers -I omaboot -n omaboot-release -s SHA256SUMS.sig &lt; SHA256SUMS</code></pre>
-<p>It should print:</p>
-<pre class="wrap"><code>Good "omaboot-release" signature for omaboot with ED25519 key {{FP_RELEASE}}</code></pre>
-<p>Anything else: don't use the image. {{CONTACT Please [tell us].}}</p>
-<p class="quiet"><code>ssh-keygen</code> comes with macOS and Linux (OpenSSH 8.1 or newer). On Windows, run it in WSL or Git Bash.</p>
+  <li class="step" id="signature">
+    <h2>Check the signature</h2>
+    <pre class="wrap" data-label="the signature"><code>ssh-keygen -Y verify -f allowed_signers -I omaboot -n omaboot-release -s SHA256SUMS.sig &lt; SHA256SUMS</code></pre>
+    <p class="expect">It prints</p>
+    <pre class="out wrap"><code>Good "omaboot-release" signature for omaboot with ED25519 key <mark>{{FP_RELEASE}}</mark></code></pre>
+    <p class="stop"><b>Anything else: don't use the image.</b> {{CONTACT Please [tell us].}}</p>
+    <p class="quiet"><code>ssh-keygen</code> comes with macOS and Linux (OpenSSH 8.1 or newer). On Windows, run it in WSL or Git Bash.</p>
+  </li>
+</ol>
 
-<h3>The keys</h3>
+<h2 id="keys">The keys</h2>
 <p><a href="/allowed_signers"><code>allowed_signers</code></a> lists two keys. Their fingerprints:</p>
 {{SIGNERS}}
 <p>The same keys are in {{IMAGE_REPO}}, so you can compare them with a second source.</p>
+
 <h2 id="why">Why you can trust it</h2>
-<ul>
-  <li><b>Built in public.</b> Each release is built by GitHub Actions from a tagged commit of the public image repository: Omarchy's own ISO build at a named upstream commit, plus our changes as a short series of readable commits. Every release links its build log.</li>
-  <li><b>The official packages.</b> The build pins every package to the versions of the official Omarchy ISO of the same release, from the Arch Linux Archive, Omarchy's stable channel and t2linux. pacman checks each package's signature as it installs it.</li>
-  <li><b>A difference report.</b> Each release compares its packages with the official ISO and lists every file that differs, each one explained.</li>
-  <li><b>Little of our own.</b> The only binaries we build ourselves are the tester and a few patched kernel modules. Their build log shows that rebuilding them without our patches gives the official modules.</li>
-  <li><b>The key stays off the build machine.</b> The build never sees the signing key. The maintainer checks the build, then signs the checksums on their own computer.</li>
-</ul>
+<dl class="trust">
+  <dt>Built in public</dt><dd>GitHub Actions builds each release from a tagged commit of the public image repository: Omarchy's own ISO build at a named upstream commit, plus our changes as a short series of readable commits. Every release links its build log.</dd>
+  <dt>Official packages</dt><dd>Every package is pinned to the version on the official Omarchy ISO of the same release, from the Arch Linux Archive, Omarchy's stable channel and t2linux. pacman checks each signature as it installs.</dd>
+  <dt>A difference report</dt><dd>Each release is compared with the official ISO, package by package and file by file, and every difference is explained. <a href="/download/#verified">The latest numbers</a></dd>
+  <dt>Little of our own</dt><dd>We build only the tester and a few patched kernel modules ourselves. The build log shows that rebuilding those modules without our patches gives the official ones.</dd>
+  <dt>Key off the builder</dt><dd>The build never sees the signing key. The maintainer checks the build, then signs the checksums on their own computer.</dd>
+</dl>
 <p>Read {{SOURCE}}.</p>

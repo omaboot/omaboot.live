@@ -1,13 +1,14 @@
 <!-- title: Docs -->
-<!-- description: How OmaBoot? Live tests each of the 46 criteria on an Intel Mac, how each test decides, and how sure it is. Plus guides to writing the stick and verifying a download, and the FAQ. -->
+<!-- description: How OmaBoot? Live tests each of the 46 criteria on an Intel Mac, how each test decides, and how sure it is. Plus guides to flashing a USB stick, verifying a download and starting a T2 Mac, and the FAQ. -->
 <div class="wrap page-head">
   <h1>Docs</h1>
   <p class="lede">How every test works, how it decides, and how far you can trust it.</p>
 </div>
 <div class="wrap">
   <div class="guides">
-    <a class="guide" href="/write/"><h2>Write the stick</h2><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy), from macOS, Linux or Windows. Then hold Option.</p></a>
-    <a class="guide" href="/verify/"><h2>Verify a download</h2><p>Check the checksum and the signature before you write the stick.</p></a>
+    <a class="guide" href="/write/"><h2>Flash a USB stick</h2><p>Any USB stick of 2 GB or more (8 GB for OmaBoot? Omarchy), from macOS, Linux or Windows. Then hold Option.</p></a>
+    <a class="guide" href="/verify/"><h2>Verify a download</h2><p>Check the checksum and the signature before you flash the stick.</p></a>
+    <a class="guide" href="#t2"><h2>T2 Macs</h2><p>Allow a 2018–2020 Mac to start from the stick, step by step, and set it back after.</p></a>
     <a class="guide" href="/privacy/"><h2>What gets sent</h2><p>What a report holds, where it goes, and what boot.watch keeps: nothing.</p></a>
   </div>
 
@@ -37,6 +38,49 @@
 
   {{DOCS}}
 
+  <section class="docs-t2" id="t2">
+    <h2>T2 Macs: allow the stick</h2>
+    <p class="lede">Most Intel Macs from 2018 to 2020, and the iMac Pro, have Apple's T2 chip. It won't start them from a USB stick until you allow it, once, in macOS Recovery. You need an administrator's password.</p>
+    <ol class="t2-steps">
+      <li><p><b>Start in macOS Recovery.</b> Turn the Mac on and at once hold <kbd>⌘</kbd> <kbd>R</kbd> until the Apple logo appears. If it asks, pick a user and enter their password.</p></li>
+      <li><p><b>Open Startup Security Utility.</b> In the menu bar: <b>Utilities</b> › <b>Startup Security Utility</b>. When it asks, choose <b>Enter macOS Password</b> and sign in as an administrator.</p>
+        <figure class="ui-fig" aria-label="The Utilities menu in macOS Recovery, with Startup Security Utility chosen.">
+          <svg viewBox="0 0 520 140" aria-hidden="true">
+            <rect class="ui-bar" x="0" y="0" width="520" height="26"/>
+            <rect class="ui-ph" x="18" y="9" width="44" height="8" rx="2"/><rect class="ui-ph" x="80" y="9" width="30" height="8" rx="2"/>
+            <rect class="ui-hi" x="120" y="3" width="80" height="20" rx="3"/><text x="160" y="17.5" text-anchor="middle" class="ui-on">Utilities</text>
+            <rect class="ui-ph" x="214" y="9" width="44" height="8" rx="2"/>
+            <rect class="ui-menu" x="124" y="28" width="230" height="104" rx="5"/>
+            <rect class="ui-hi" x="130" y="36" width="218" height="24" rx="3"/><text x="142" y="52.5" class="ui-on">Startup Security Utility</text>
+            <rect class="ui-ph" x="142" y="72" width="70" height="8" rx="2"/><rect class="ui-ph" x="142" y="94" width="92" height="8" rx="2"/><rect class="ui-ph" x="142" y="116" width="56" height="8" rx="2"/>
+          </svg>
+          <figcaption>Fig. 1 Utilities › Startup Security Utility (drawn; other items left out).</figcaption>
+        </figure></li>
+      <li><p><b>Turn off Secure Boot</b> for this Mac: under <b>Secure Boot</b>, choose <b>No Security</b>. Medium Security isn't enough: it only starts systems signed by Apple or Microsoft.</p></li>
+      <li><p><b>Allow the stick:</b> under <b>External Boot</b>, choose <b>Allow booting from external or removable media</b>.</p>
+        <figure class="ui-fig" aria-label="Startup Security Utility with Secure Boot set to No Security and External Boot set to Allow booting from external or removable media.">
+          <svg viewBox="0 0 520 300" aria-hidden="true">
+            <rect class="ui-win" x="0.5" y="0.5" width="519" height="299" rx="8"/>
+            <circle class="ui-dot" cx="20" cy="18" r="5"/><circle class="ui-dot" cx="38" cy="18" r="5"/><circle class="ui-dot" cx="56" cy="18" r="5"/>
+            <text x="260" y="22" text-anchor="middle" class="ui-title">Startup Security Utility</text>
+            <text x="32" y="64" class="ui-h">Secure Boot</text>
+            <circle class="ui-radio" cx="40" cy="86" r="6"/><text x="56" y="90">Full Security</text>
+            <circle class="ui-radio" cx="40" cy="110" r="6"/><text x="56" y="114">Medium Security</text>
+            <circle class="ui-radio on" cx="40" cy="134" r="6"/><circle class="ui-dotin" cx="40" cy="134" r="2.5"/><text x="56" y="138" class="ui-on">No Security</text>
+            <rect class="ui-ph" x="190" y="131" width="150" height="7" rx="2"/>
+            <path class="ui-rule" d="M32 164h456"/>
+            <text x="32" y="192" class="ui-h">External Boot</text>
+            <circle class="ui-radio" cx="40" cy="214" r="6"/><text x="56" y="218">Disallow booting from external or removable media</text>
+            <circle class="ui-radio on" cx="40" cy="238" r="6"/><circle class="ui-dotin" cx="40" cy="238" r="2.5"/><text x="56" y="242" class="ui-on">Allow booting from external or removable media</text>
+            <rect class="ui-ph" x="56" y="256" width="210" height="7" rx="2"/>
+          </svg>
+          <figcaption>Fig. 2 The two settings OmaBoot? Live needs (drawn after Apple's utility).</figcaption>
+        </figure></li>
+      <li><p><b>Restart</b> from the Apple menu, then hold <kbd>Option</kbd> and pick OmaBoot? Live as on any Mac (<a href="/write/#boot">Boot it</a>).</p></li>
+    </ol>
+    <p class="quiet"><b>To set it back:</b> the same steps, with <b>Full Security</b> and <b>Disallow booting from external or removable media</b>.</p>
+  </section>
+
   <section class="docs-faq" id="faq">
     <h2>FAQ</h2>
     <h3 id="changes">Does it change my Mac?</h3>
@@ -48,9 +92,9 @@
     <p>Some early Intel Macs have a 64-bit processor but 32-bit firmware. The stick carries a 32-bit EFI loader for them, and Omarchy's kernel can start from one, but it hasn't been tried on such a Mac yet.</p>
     <!-- TODO(owner): update the 32-bit EFI sentence once one has been tried (LIVE-PLAN spike 5, parked). -->
 
-    <h3 id="t2">What about T2 Macs?</h3>
+    <h3 id="faq-t2">What about T2 Macs?</h3>
     <p>The Apple T2 Security Chip is in most Intel Macs from 2018 to 2020 and in the iMac Pro. It runs Secure Boot and the internal SSD. The camera and speakers are connected through it, and on laptops the keyboard and trackpad too.</p>
-    <p>A T2 Mac won't start from a USB stick until you allow it: start up in macOS Recovery, open <b>Startup Security Utility</b>, set Secure Boot to <b>No Security</b> and allow booting from external media. You can set it back afterwards.</p>
+    <p>A T2 Mac won't start from a USB stick until you allow it in macOS Recovery's Startup Security Utility. You can set it back afterwards. <a href="#t2">T2 Macs, step by step</a></p>
     <p>On T2 Macs, OmaBoot? Live starts the t2linux kernel (<code>linux-t2</code>), the kernel Omarchy installs on them. On other Macs it starts Omarchy's standard kernel.</p>
     <p>The T1 chip, in the 2016 and 2017 MacBook Pro with Touch Bar, runs the Touch Bar and Touch ID. It doesn't change how the Mac starts from USB.</p>
 
