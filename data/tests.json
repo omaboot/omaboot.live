@@ -746,7 +746,7 @@
    "area": "Ports",
    "method": "Hands-on · automatic",
    "confidence": "high",
-   "tests": "Watches USB devices appear port by port; with a port map it rings one drawn port at a time. Each device gets a check: a disk is read raw and read-only (O_DIRECT, never mounted, never written), 32 MiB twice and compared, or for the OmaBoot? stick checked against the image's chunk checksums; a mouse or keyboard has to send a move or a key within 20 s; anything else counts by enumerating. The stick's port and a tethered phone's count since power-on. Booted with copytoram, the stick itself moves from port to port and gets the verified read on each.",
+   "tests": "Watches USB devices appear port by port; with a port map it rings one drawn port at a time. Each device gets a check: a disk is read raw and read-only (O_DIRECT, never mounted, never written): with the test file (Download, Test media) in its top folder, the file's 32 MiB checked byte for byte against its pattern; the OmaBoot? stick, against the image's chunk checksums; any other disk, 32 MiB read twice and compared; a mouse or keyboard has to send a move or a key within 20 s; anything else counts by enumerating. The stick's port and a tethered phone's count since power-on. Booted with copytoram, the stick itself moves from port to port and gets the verified read on each.",
    "decides": "Supported: at least one port worked, none marked dead, and no port's read failed. Partial: ports marked dead, or a read that errored, came up short, made no progress for 5 s, took over 150 s or didn't match, with nothing reading fine on that port after. Failed: nothing seen and a port marked dead.",
    "why": "Enumeration on a ringed port proves the data lines; a verified read proves data moves.",
    "hardware": [],
@@ -814,16 +814,16 @@
    "area": "Ports",
    "method": "Hands-on · automatic",
    "confidence": "high",
-   "tests": "Waits for a card disk to appear with a size: an mmcblk disk (PCIe readers) or Apple's USB card reader gaining a size. External readers are ignored. Nothing is read from the card.",
-   "decides": "Supported: a card disk with a size. Partial: the card is seen but no disk within 10 s. Failed: the tester says nothing shows up (after 15 s).",
-   "why": "A disk with a size is strong evidence.",
+   "tests": "Waits for a card disk to appear with a size: an mmcblk disk (PCIe readers) or Apple's USB card reader gaining a size. External readers are ignored. Nothing is written to the card. With the test file (Download, Test media) in its top folder (FAT, exFAT or Mac OS Extended), the file is found by reading the card's file system raw, never mounting it, and its 32 MiB are checked byte for byte; without it, nothing else on the card is read.",
+   "decides": "Supported: a card disk with a size, and its test file, when it has one, read back right. Partial: the card is seen but no disk within 10 s, or its test file read back wrong. Failed: the tester says nothing shows up (after 15 s).",
+   "why": "A disk with a size is strong evidence; a verified test file proves data moves through the reader.",
    "hardware": [
     "On a MacBook Air (13-inch, Mid 2012): a 4.0 GB card on Apple's USB reader."
    ],
    "pitfalls": [
     {
      "kind": "pass",
-     "text": "The card's size reads but data reads fail."
+     "text": "Without the test file on it, the card's size reads but data reads could still fail."
     }
    ]
   },
@@ -847,14 +847,14 @@
    "area": "Ports",
    "method": "Hands-on · automatic",
    "confidence": "medium",
-   "tests": "Offered when the quick pass finds the FireWire controller driven (firewire_ohci) and the Mac's own node on the bus. Watches the FireWire bus, twice a second, for a node other than the Mac's own: a drive, a camera, another Mac in Target Disk Mode. It names the device from the configuration ROM the Mac read over the cable. With a port map, each FireWire 400 and 800 port is ringed and asked for in turn. Nothing is mounted, read or written: a FireWire disk is made read-only the moment it appears, and the sleep tests wait until it's unplugged, since a Mac can hang going to sleep with one attached.",
-   "decides": "Supported: a new node showed up after the screen opened (a device already plugged in has to be unplugged and plugged back in); with a port map, on every port. Partial: on some ports only. Failed: on a Mac with FireWire, the quick pass found no controller, no driver or no bus, or a device was plugged in and nothing showed up (“Nothing shows up”, after 15 s).",
-   "why": "A new node proves the port, the cable's link and the bus, and that the Mac read the device's ROM across it. No more than that crosses the cable: it reads nothing from a drive.",
+   "tests": "Offered when the quick pass finds the FireWire controller driven (firewire_ohci) and the Mac's own node on the bus. Watches the FireWire bus, twice a second, for a node other than the Mac's own: a drive, a camera, another Mac in Target Disk Mode. It names the device from the configuration ROM the Mac read over the cable. With a port map, each FireWire 400 and 800 port is ringed and asked for in turn. Nothing is mounted or written: a FireWire disk is made read-only the moment it appears; with the test file (Download, Test media) in its top folder (FAT, exFAT or Mac OS Extended), its 32 MiB are read and checked byte for byte, and nothing else on the drive is read; and the sleep tests wait until it's unplugged, since a Mac can hang going to sleep with one attached.",
+   "decides": "Supported: a new node showed up after the screen opened (a device already plugged in has to be unplugged and plugged back in); with a port map, on every port. Partial: on some ports only, or a drive's test file read back wrong. Failed: on a Mac with FireWire, the quick pass found no controller, no driver or no bus, or a device was plugged in and nothing showed up (“Nothing shows up”, after 15 s).",
+   "why": "A new node proves the port, the cable's link and the bus, and that the Mac read the device's ROM across it. A verified test file on a drive proves data moves across it too.",
    "hardware": [],
    "pitfalls": [
     {
      "kind": "pass",
-     "text": "A drive shows up as a node even if it couldn't move data: the test reads nothing from it."
+     "text": "Without the test file on it, a drive shows up as a node even if it couldn't move data."
     },
     {
      "kind": "fail",
@@ -882,7 +882,7 @@
    "area": "Ports",
    "method": "Hands-on · automatic",
    "confidence": "high",
-   "tests": "Offered when the quick pass finds the Mac's own drive with its block device (sr_mod). Asks the drive for its state until it holds a disc, then reads it: a data disc's first MB through the drive, opened read-only, or an audio CD's table of contents. Then it ejects the disc (slot-loading drives have no button) and waits until the drive reports it gone. Nothing is mounted or written. The sleep tests wait until the drive is empty, since a Mac can hang going to sleep with a disc in it.",
+   "tests": "Offered when the quick pass finds the Mac's own drive with its block device (sr_mod). Asks the drive for its state until it holds a disc, then reads it: a data disc's first MB through the drive, opened read-only, or an audio CD's table of contents. The test disc (OMABOOT_TEST, on Download) has its contents checked byte for byte too; a wrong byte fails the read. Then it ejects the disc (slot-loading drives have no button) and waits until the drive reports it gone. Nothing is mounted or written. The sleep tests wait until the drive is empty, since a Mac can hang going to sleep with a disc in it.",
    "decides": "Supported: the disc read and came back out. Partial: it read but wouldn't come out. Failed: the drive couldn't read two discs (a read that stalls for 20 s or runs past 90 s counts as one), or a disc went in and the drive never reported it (“Nothing happens”, after 25 s). A Mac that came with a drive and has none now isn't failed: it may have been removed or swapped for a disk.",
    "why": "Reading a disc and ejecting it takes the whole drive: loading, the laser, its link to the Mac and the eject.",
    "hardware": [],

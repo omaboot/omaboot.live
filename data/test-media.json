@@ -1,0 +1,6 @@
+{
+  "base": "https://get.omaboot.live/test/",
+  "signed": true,
+  "file": {"name": "OMABOOT-TEST.BIN", "size": 33558528, "sha256": "ccbabd4043a0f1a145b07802f793f09f0004e11230ba9b15ac4734d43974e21e"},
+  "disc": {"name": "omaboot-test.iso", "size": 2473984, "sha256": "bd61f235d87544e5f798ac0451c1668fdb4815dc9f70121c7e616d9253a14c72"}
+}

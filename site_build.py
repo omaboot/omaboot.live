@@ -20,7 +20,8 @@ Tokens in pages: {{BOOT}} {{BOOT pleased}} (Boot's sprite), {{WORDMARK}}, {{DIO}
 DoesItOmarchy.com), {{EDITIONS}} (the editions, with each one's newest release), {{AREAS}} (the
 test areas as tiles), {{DOCS}} (the list of tests), {{SIGNERS}} (the keys), {{FP_RELEASE}},
 {{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}, {{HERO_ART}} (the
-iMac drawing), {{VERIFIED}} (what the newest release was checked for).
+iMac drawing), {{VERIFIED}} (what the newest release was checked for), {{TEST_MEDIA}} (the test file
+and the test disc, from data/test-media.json).
 <!-- TODO(owner): ... --> comments are listed on every build and left out of dist/.
 
 After writing, the build checks dist/: every internal link resolves, and no token, TODO or
@@ -240,6 +241,64 @@ def verified_html(rels):
             f'<p class="method-links">{report} / <a href="/verify/">Verify your download</a></p>')
 
 
+# The test media (boot-live's tools/testfile and tools/testcd): optional, any stick, card, drive or
+# disc does for the tests; these also prove the bytes came back right. They don't change with each
+# release, so they have one place: data/test-media.json's "base" on get.omaboot.live, with their
+# SHA256SUMS, its signature ("signed": once the owner has signed it) and allowed_signers.
+def load_test_media():
+    path = os.path.join(DATA, "test-media.json")
+    tm = json.load(open(path))
+    if not str(tm.get("base", "")).startswith("https://") or not tm["base"].endswith("/") or not isinstance(tm.get("signed"), bool):
+        sys.exit(f"{path}: base must be an https:// address ending in /, signed true or false")
+    for k in ("file", "disc"):
+        m = tm.get(k) or {}
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", str(m.get("name", ""))) or not isinstance(m.get("size"), int) \
+                or not re.fullmatch(r"[0-9a-f]{64}", str(m.get("sha256", ""))):
+            sys.exit(f"{path}: {k} needs a file name, a size in bytes and a sha256")
+    return tm
+
+
+ICON_FILE = ('<svg class="media-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.8h8.2L18.5 7v14.2H6z"/><path d="M14 2.8V7h4.5"/>'
+             '<path d="M8.7 11h2M12.3 11h3M8.7 14h3.6M14 14h1.3M8.7 17h1.3M11.6 17h3.7"/></svg>')
+ICON_DISC = ('<svg class="media-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><circle cx="12" cy="12" r="2.4"/>'
+             '<path d="M12 5.6a6.4 6.4 0 0 1 6.4 6.4"/></svg>')
+
+
+def test_media_html():
+    tm = load_test_media()
+    base = html.escape(tm["base"])
+
+    def get(k):
+        m = tm[k]
+        return (f'<p class="get"><a class="button ghost" href="{base}{m["name"]}">Download {m["name"]}</a>'
+                f'<span class="quiet">{m["size"] / 1e6:.1f} MB</span></p>'
+                f'<p class="tag">SHA256</p><pre class="wrap" data-label="the SHA256 of {m["name"]}"><code>{m["sha256"]}</code></pre>')
+    sums = f'<a href="{base}SHA256SUMS"><code>SHA256SUMS</code></a>'
+    check = (f'Their checksums are in {sums}, signed with the release keys (<a href="{base}SHA256SUMS.sig"><code>SHA256SUMS.sig</code></a>): '
+             f'<a href="/verify/">check them</a> as you would the image.' if tm["signed"] else f'Their checksums are in {sums}.')
+    return f'''<div class="media">
+<article class="media-card">{ICON_FILE}<div>
+<p class="role">USB · SD card · FireWire</p><h3>Test file</h3>
+<p>Copy <code>OMABOOT-TEST.BIN</code> to the top folder of a stick, card or drive you already have. Nothing gets erased.</p>
+<ul class="media-points">
+<li>A port test finds it and checks every byte. Nothing is written to the drive.</li>
+<li>It reads FAT and exFAT (most sticks and cards) and Mac OS Extended. On APFS or NTFS the tests still run, without the byte check.</li>
+<li>Keep the file's name.</li>
+</ul>
+{get("file")}</div></article>
+<article class="media-card">{ICON_DISC}<div>
+<p class="role">Optical drive</p><h3>Test disc</h3>
+<p>Burn <code>omaboot-test.iso</code> to a CD-R as a disc image. Any CD or DVD works for the test; this one proves the drive read it right.</p>
+<div class="os-rows">
+<div class="os-row"><p class="os">macOS</p><pre data-label="burning on macOS"><code>hdiutil burn omaboot-test.iso</code></pre></div>
+<div class="os-row"><p class="os">Linux</p><pre data-label="burning on Linux"><code>xorriso -as cdrecord -v dev=/dev/sr0 omaboot-test.iso</code></pre></div>
+<div class="os-row"><p class="os">Windows</p><p class="os-say">Right-click the file, <b>Burn disc image</b>.</p></div>
+</div>
+{get("disc")}</div></article>
+</div>
+<p class="method-links">{check}</p>'''
+
+
 def editions_html(rels, full=False):
     eds = load_editions()
     cards = "".join(edition_card(e, newest(rels, e["id"]), full, earlier_html(rels, e["id"]) if full else "") for e in eds)
@@ -446,7 +505,7 @@ def fill(body, cfg, rels, todos, slug, tests):
         "{{DOWNLOAD_SAY}}": f'<div class="say">{boot_svg("pleased", label="")}<p>fresh build. check it before you flash it.</p></div>' if rels
                              else f'<div class="say">{boot_svg(label="")}<p>not out yet. I\'m still being tested on real Macs.</p></div>',
         "{{HERO_ART}}": open(os.path.join(DATA, "hero-imac.svg")).read().strip(),
-        "{{VERIFIED}}": verified_html(rels),
+        "{{VERIFIED}}": verified_html(rels), "{{TEST_MEDIA}}": test_media_html(),
         "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{SIGNERS}}": signers_html(),
         "{{FP_RELEASE}}": signers()[0][4], "{{ISO}}": html.escape(iso),
         "{{SOURCE}}": link(cfg["source"], "the source code") + ("" if cfg["source"] else " (published on GitHub with the first release)"),
