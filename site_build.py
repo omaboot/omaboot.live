@@ -468,6 +468,12 @@ def read_page(slug):
     return title, desc, body
 
 
+def asset_version(name):
+    """A short hash of a file's content, added to its address (/site.css?v=…) so a browser that
+    cached the old file fetches the new one on the next release instead of mixing the two."""
+    return hashlib.sha256(open(os.path.join(HERE, name), "rb").read()).hexdigest()[:10]
+
+
 def document(cfg, rels, slug, title, desc, body):
     path = "/" if slug == "index" else f"/{slug}/"
     section = "docs" if slug.startswith("docs/") or slug in GUIDES else slug
@@ -493,8 +499,8 @@ def document(cfg, rels, slug, title, desc, body):
 <meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{url}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/site.css">
-<script src="/copy.js" defer></script>
+<link rel="stylesheet" href="/site.css?v={asset_version("site.css")}">
+<script src="/copy.js?v={asset_version("copy.js")}" defer></script>
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{cfg["name"]}">
@@ -622,7 +628,7 @@ def check(out):
                 if not href.startswith("/"):
                     problems.append(f"{rel}: relative or insecure link {href}")
                     continue
-                p = href.split("#")[0].lstrip("/")
+                p = href.split("#")[0].split("?")[0].lstrip("/")
                 target = os.path.join(out, p, "index.html") if (p == "" or p.endswith("/")) else os.path.join(out, p)
                 if not os.path.exists(target):
                     problems.append(f"{rel}: broken link {href}")
