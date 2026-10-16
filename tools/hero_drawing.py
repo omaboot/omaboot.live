@@ -31,8 +31,9 @@ ap.add_argument("--hero", action="store_true", help="the home page's framing and
 a = ap.parse_args()
 if a.hero:  # the framing picked on the review page (D3), for a wide, short hero
     # the port row lands under the hero's laptop, its labels to the right of it (site.css sizes the
-    # drawing 1440 x 720 px, centred on the page and standing on the hero's bottom edge)
-    a.zoom, a.target, a.cx, a.cy, a.az, a.el, a.w, a.h = 2.3, "112,110,20", 0.585, 0.885, 55, 12, 1600, 800
+    # drawing 1440 x 1530 px, centred on the page and standing on the hero's bottom edge; tall enough
+    # that the iMac's edges run up to the menu bar on any hero)
+    a.zoom, a.target, a.cx, a.cy, a.az, a.el, a.w, a.h = 2.3, "112,110,20", 0.585, 1 - 92 / 1700, 55, 12, 1600, 1700
 
 W, H, Y0 = 650.0, 447.0, 70.0          # body width, height, gap under it
 TE, B, R = 12.0, 48.0, 20.0            # edge band depth, back bulge, corner radius

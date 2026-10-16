@@ -57,6 +57,34 @@
   </div>
 </section>
 
+<section class="band" id="bootwatch">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>boot.watch, the other end of the line</h2>
+      <p>OmaBoot?'s own small server. The network tests talk to it, so a working connection is proven byte by byte, not assumed.</p>
+    </div>
+    <div class="bw-grid">
+      <figure class="bw-flow">
+        <p class="bw-ends"><span>Mac</span><span>boot.watch</span></p>
+        <ol class="seq">
+          <li><span class="arrow to" aria-hidden="true"></span><p><b>Sign-in check.</b> One echo over plain HTTP. A hotel's sign-in page would answer instead.</p></li>
+          <li><span class="arrow both" aria-hidden="true"></span><p><b>Round trip.</b> Six echoes over HTTPS; a wrong certificate means someone else answered.</p></li>
+          <li><span class="arrow from" aria-hidden="true"></span><p><b>Download.</b> 64 KB and 256 KB of random data, every byte checked.</p></li>
+          <li><span class="arrow to" aria-hidden="true"></span><p><b>Upload.</b> 64 KB back; boot.watch says how much of it matched.</p></li>
+          <li><span class="arrow from" aria-hidden="true"></span><p><b>Speed.</b> 1 MB for at most 2 seconds.</p></li>
+        </ol>
+        <figcaption>One Wi-Fi or Ethernet test, over the adapter under test only, in 15 seconds at most.</figcaption>
+      </figure>
+      <div class="bw-points">
+        <section><h3>Why it's needed</h3><p>Getting an address doesn't prove a network works: a sign-in page, a proxy or a flaky adapter can all look connected. Data that comes back exactly as it should can't be faked.</p></section>
+        <section><h3>What it keeps: nothing</h3><p>No request log, no addresses on disk, nothing about your Mac in the data. Rate limits live in memory and are forgotten after an hour; it counts only totals. Its uptime is public at <a href="https://status.boot.watch">status.boot.watch</a>.</p></section>
+        <section><h3>Next: your phone <span class="tag-planned">planned</span></h3><p>Pair a phone by QR code and boot.watch relays its part in the camera, microphone and sound tests, encrypted end to end. The relay stores nothing either.</p></section>
+      </div>
+    </div>
+    <p class="more"><a href="/docs/#bootwatch">How boot.watch works: the protocol, the data, the limits</a></p>
+  </div>
+</section>
+
 <section class="band">
   <div class="wrap">
     <div class="section-head">
