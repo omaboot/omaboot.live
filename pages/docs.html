@@ -44,6 +44,7 @@
     <p class="lede">boot.watch is OmaBoot?'s own small server. The Wi-Fi and Ethernet tests move their test data through it and check every byte, both ways, so a sign-in page, a proxy's error page or a broken adapter can't pass for a working network.</p>
 
     <h3 id="bootwatch-protocol">The protocol (v1)</h3>
+    <div class="proto-box">
     <p>Small and public, so a client in any language can use it. Everything is under <code>https://boot.watch/v1/</code>.</p>
     <div class="table-scroll"><table class="pkgs proto">
       <thead><tr><th>Request</th><th>Answer</th><th>Limits</th></tr></thead>
@@ -72,6 +73,7 @@
       </tbody>
     </table></div>
     <p class="quiet">A seed means nothing outside its request: the Mac picks a fresh random one each time.</p>
+    </div>
 
     <h3 id="bootwatch-test">How a network test uses it</h3>
     <p>Over one connection bound to the adapter under test (<code>SO_BINDTODEVICE</code>), 15 seconds at most:</p>

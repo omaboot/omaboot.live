@@ -577,6 +577,17 @@ ol.seq b { color: var(--ink); font-weight: 400; }
 .docs-bw h3 { margin: 32px 0 10px; scroll-margin-top: 16px; }
 .docs-bw .lede { margin-bottom: 8px; }
 table.proto td:first-child { white-space: nowrap; }
+/* the protocol's definition (requests, limits, the stream) in one bordered box, as on
+   status.boot.watch (owner, 2026-10-17); its code sits on the page's black inside the panel */
+.proto-box { margin: 0 0 8px; padding: 22px 24px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 2px; }
+.proto-box > :is(p, ul) { max-width: 80ch; }
+.proto-box > :first-child { margin-top: 0; }
+.proto-box > :last-child { margin-bottom: 0; }
+.proto-box h3 { margin-top: 28px; }
+.proto-box code, .proto-box pre { background: var(--bg); }
+.proto-box pre code { background: none; }
+.proto-box table.pkgs th { background: var(--panel-2); }
+@media (max-width: 640px) { .proto-box { padding: 16px 14px; } }
 ol.bw-steps { padding-left: 22px; display: grid; gap: 8px; color: var(--quiet); }
 ol.bw-steps b { color: var(--ink); font-weight: 400; }
 .guides { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
