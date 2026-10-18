@@ -1,6 +1,7 @@
 // omaboot.live's only script: a copy button on each command block (owner, 2026-10-16), as on
 // DoesItOmarchy.com's Identify page. Blocks marked class="out" (what a command should print) get
-// none. Without this script the commands are plain text, still selectable.
+// none. A block's data-copy names what it copies (the key fingerprints on Verify). Without this
+// script the commands are plain text, still selectable.
 (function () {
   "use strict";
   var status = document.createElement("p");
@@ -22,7 +23,7 @@
     button.type = "button";
     button.className = "copy";
     button.textContent = "Copy";
-    button.setAttribute("aria-label", "Copy the command" + (pre.dataset.label ? " for " + pre.dataset.label : ""));
+    button.setAttribute("aria-label", pre.dataset.copy || "Copy the command" + (pre.dataset.label ? " for " + pre.dataset.label : ""));
     var timer;
     button.addEventListener("click", function () {
       var done = function (ok) {
