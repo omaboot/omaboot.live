@@ -480,10 +480,21 @@ def signers():
 
 
 def signers_html():
-    roles = {"omaboot-release": "Release key. Signs every release; each signature needs the maintainer's approval.",
-             "omaboot-release-backup": "Backup key. Kept offline, on paper. It signs only a release that ships a new key list, if the release key is ever lost or compromised."}
-    items = "".join(f'<li><p>{roles.get(c, c)}</p><p class="fp"><code>{fp}</code></p></li>' for _, _, _, c, fp in signers())
-    return f'<ul class="keys">{items}</ul>'
+    """The keys as cards, one per row, release key first: an icon, its role, the fingerprint with
+    a copy button (copy.js) (owner, 2026-10-18)."""
+    key = '<circle cx="7.5" cy="12" r="3.6"/><path d="M11.1 12H21M17.5 12v3.2M20.3 12v2.4"/>'
+    paper = ('<path d="M5.5 2.8h8.7l4.3 4.3v14.1h-13z"/><path d="M14.2 2.8v4.3h4.3"/>'
+             '<circle cx="9.4" cy="14" r="2.3"/><path d="M11.7 14h4.6M15 14v2.1"/>')
+    roles = {"omaboot-release": ("Release key", key, "Signs every release, each with the maintainer's approval."),
+             "omaboot-release-backup": ("Backup key", paper, "Kept offline, on paper. Signs only a release that ships a new key list, if the release key is ever lost.")}
+    order = sorted(signers(), key=lambda k: k[3] != "omaboot-release")
+    cards = []
+    for _, _, _, c, fp in order:
+        name, icon, role = roles.get(c, (c, key, ""))
+        cards.append(f'<li class="key-card"><svg class="key-icon" viewBox="0 0 24 24" aria-hidden="true">{icon}</svg>'
+                     f'<div><h3>{name}</h3><p>{role}</p>'
+                     f'<pre class="fp" data-copy="Copy the {name.lower()}\'s fingerprint"><code>{fp}</code></pre></div></li>')
+    return f'<ul class="keys">{"".join(cards)}</ul>'
 
 
 # ── Pages ───────────────────────────────────────────────────────────────────────────────────
