@@ -1,6 +1,3 @@
-# OmaBoot? release signing keys. Verify a release's checksums with:
+# OmaBoot? release signing keys: published with the first release.
+# Then verify a release's checksums with:
 #   ssh-keygen -Y verify -f allowed_signers -I omaboot -n omaboot-release -s SHA256SUMS.sig < SHA256SUMS
-# Release key: signs every release; each signature needs the maintainer's approval.
-omaboot namespaces="omaboot-release" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIACC1iQjOe5mc5BDZftfnMecV189rysVOPWCweXxxwhL omaboot-release
-# Backup key: offline, on paper; signs only a release that ships a new key list.
-omaboot namespaces="omaboot-release" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINRUUXPgycy5EHclsguYu3MQUe5emRAM1aQ7/94/hzwj omaboot-release-backup
