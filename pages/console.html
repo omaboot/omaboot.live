@@ -1,0 +1,157 @@
+<!-- title: Console commands -->
+<!-- description: Every command in OmaBoot? Live's drop-down console: what it does, what it takes, and whether it touches your results. -->
+<div class="wrap page-head">
+<p class="crumbs"><a href="/docs/">Docs</a> / Console commands</p>
+<h1>Console commands</h1>
+<p class="lede">OmaBoot? Live has a small command console you can open on any screen. Use it to look closer at a result, add a note to the report, save the logs, or measure something again.</p>
+</div>
+<div class="wrap">
+<div class="cmd-box" id="console-open">
+  <h2>Opening it</h2>
+  <p>Press <kbd>`</kbd> (the key left of <kbd>1</kbd>; <kbd>§</kbd> on Macs with an ISO keyboard). The console drops down above the hint bar; the screen under it keeps running. <kbd>Ctrl</kbd>+<kbd>`</kbd> opens it even while a text field has the keyboard.</p>
+  <dl class="defs">
+    <dt><kbd>Esc</kbd></dt><dd>Closes it.</dd>
+    <dt><kbd>Tab</kbd></dt><dd>Takes the dim completion after the cursor. For a command that wants a test, a drive or a step, Tab lists the choices.</dd>
+    <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Go back through the commands you've typed.</dd>
+    <dt><kbd>?</kbd></dt><dd>Lists the commands.</dd>
+    <dt><kbd>PgUp</kbd> <kbd>PgDn</kbd></dt><dd>Scroll the output.</dd>
+    <dt><kbd>Ctrl</kbd>+<kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Make the console taller (up to half the screen) or shorter.</dd>
+  </dl>
+  <p class="quiet">Every command you run is written to the run's full log. Only commands that measure again are recorded in the report.</p>
+</div>
+
+<h2 id="kinds">Kinds of command</h2>
+<p>Each command has a kind, shown as a tag in the list <kbd>?</kbd> prints and on its box below.</p>
+<dl class="defs kinds">
+  <dt><span class="ktag k-read">read-only</span></dt><dd>Looks only. Never recorded in the report.</dd>
+  <dt><span class="ktag k-redo">redo</span></dt><dd>Measures a test again. The report records it, and the run stays sendable to DoesItOmarchy.com.</dd>
+  <dt><span class="ktag k-write">drive-write</span></dt><dd>Writes a file to a drive you name, after asking. Changes no result.</dd>
+</dl>
+
+<h2 id="look">Look closer</h2>
+
+<section class="cmd-box" id="cmd-why">
+  <header><h3><code>why</code> <code class="args">&lt;test&gt;</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>The evidence behind a result: the status, what was measured, the method, the reason for a partial or a fail, and the fix the catalog lists for it. A result you set by hand in a dev build says so.</p>
+  <p class="how">Tab lists this run's tests.</p>
+  <pre class="wrap" data-label="example"><code>why network.wifi</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-log">
+  <header><h3><code>log</code> <code class="args">[filter]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>The run's full log followed by the kernel log. A filter keeps only the lines that contain it, ignoring case. With no filter the kernel log shows its last 100 lines, since a boot writes a thousand and more. Kernel lines are coloured: the driver in blue, warnings amber, errors red.</p>
+  <p class="how">Tab lists the 16 commonest drivers in the kernel log.</p>
+  <pre class="wrap" data-label="example"><code>log brcmfmac</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-ids">
+  <header><h3><code>ids</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>This Mac's hardware IDs, as read from it, with the model's name where the catalog knows it. These are what the run matches against the catalog to find your configuration.</p>
+</section>
+
+<section class="cmd-box" id="cmd-catalog">
+  <header><h3><code>catalog</code> <code class="args">&lt;what&gt;</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Reads the catalog snapshot the run matches against, offline. The snapshot is the one built into the image, or a newer one fetched from DoesItOmarchy.com during this run. With no argument it lists its parts:</p>
+  <dl class="defs">
+    <dt><code>catalog source</code></dt><dd>Where the snapshot came from, its version, its date and how many Macs and configurations it holds.</dd>
+    <dt><code>catalog mac</code></dt><dd>This Mac as the catalog matched it: model, release, configuration, how it was found and which IDs matched.</dd>
+    <dt><code>catalog search &lt;text&gt;</code></dt><dd>Macs by identifier or name, up to 12 at a time with a count of the rest.</dd>
+    <dt><code>catalog fixes</code></dt><dd>The fixes the catalog lists for this configuration, and whether each took effect in this run.</dd>
+    <dt><code>catalog ports</code></dt><dd>This Mac's ports, by side.</dd>
+  </dl>
+  <pre class="wrap" data-label="example"><code>catalog search imac10</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-smc">
+  <header><h3><code>smc</code> <code class="args">&lt;key&gt;</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>One SMC key's type and raw bytes, read through the applesmc driver. The key is four characters. Nothing is ever written to the SMC. For the ambient light keys (<code>ALV0</code>, <code>ALV1</code>) it also shows the reading the driver's light file would give.</p>
+  <p class="how">Tab offers <code>ALV0</code>, <code>ALV1</code>, <code>ALSL</code> and <code>ALRV</code>.</p>
+  <pre class="wrap" data-label="example"><code>smc ALV0</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-report">
+  <header><h3><code>report</code> <code class="args">[json]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>This run's report so far. On its own it prints one line: how many tests passed, partly passed or failed, how many need Omarchy installed to test, and how many hands-on results there are, plus how many console commands are recorded in it. With <code>json</code> it prints the whole report, exactly as it would be sent.</p>
+  <pre class="wrap" data-label="example"><code>report json</code></pre>
+</section>
+
+<h2 id="save">Add and save</h2>
+
+<section class="cmd-box" id="cmd-note">
+  <header><h3><code>note</code> <code class="args">&lt;text&gt;</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Adds a note to the report, up to 500 characters each. <b>Notes are public:</b> once DoesItOmarchy.com accepts the report, they show on its page. Don't put a name, an address or a serial number in one.</p>
+  <pre class="wrap" data-label="example"><code>note lid sensor clicks twice before the screen goes dark</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-bugreport">
+  <header><h3><code>bugreport</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Saves the full log, the kernel log, the report, a text copy of the screen and the boot messages (plus every nap's kernel lines, if you ran <code>sleepcheck</code>) as one archive in the <code>results</code> folder of external storage. It is saved to the stick only and is never sent anywhere. It <b>may contain serial numbers</b>, so look before you share it.</p>
+</section>
+
+<section class="cmd-box" id="cmd-testfile">
+  <header><h3><code>testfile</code> <code class="args">[write &lt;drive&gt;]</code></h3><span class="ktag k-write">drive-write</span></header>
+  <p>Makes OmaBoot?'s test file, <code>OMABOOT-TEST.BIN</code> (32 MiB, byte for byte the file from the Download page), on a drive you name, so you don't have to download it on another computer. On its own, <code>testfile</code> lists the drives it can use and why it can't use the others. <code>testfile write &lt;drive&gt;</code> asks first and writes only if you answer <kbd>y</kbd>.</p>
+  <ul class="plain-list">
+    <li>It puts the file in the drive's top folder. Nothing else on the drive changes.</li>
+    <li>It works on FAT and exFAT drives and on the OmaBoot? stick's own OMABOOT partition. It never writes to Mac (HFS+) drives, internal disks or the image's own partitions.</li>
+    <li>Tab lists the drives it will accept.</li>
+  </ul>
+  <pre class="wrap" data-label="example"><code>testfile
+testfile write sdb1</code></pre>
+</section>
+
+<h2 id="again">Measure again</h2>
+
+<section class="cmd-box" id="cmd-rerun">
+  <header><h3><code>rerun</code> <code class="args">&lt;test&gt;</code></h3><span class="ktag k-redo">redo</span></header>
+  <p>Measures one test again. The new measurement decides the result, and the earlier one goes into its evidence, so <code>why</code> shows both. The report records the command, and the run stays sendable.</p>
+  <p class="how">Tab lists this run's tests.</p>
+  <pre class="wrap" data-label="example"><code>rerun network.wifi</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-sleepcheck">
+  <header><h3><code>sleepcheck</code> <code class="args">[step]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Tests the kernel's suspend one step at a time, to find where a Mac that hangs going to sleep gets stuck. With no argument it shows what this kernel offers: the sleep modes and states, the <code>pm_test</code> levels, and the <code>console_suspend</code> setting. It records nothing in the report.</p>
+  <dl class="defs">
+    <dt><code>all</code></dt><dd>Runs the levels from the least deep (freezer, devices, platform, processors, core), about 5 seconds each, with no real sleep. Stops at the first that fails.</dd>
+    <dt>a level name</dt><dd>Runs just that one.</dd>
+    <dt><code>s2idle</code></dt><dd>A real 15 second light sleep, woken by the clock.</dd>
+    <dt><code>deep</code></dt><dd>A real 20 second deep sleep, woken by the clock, as in the Sleep and wake test.</dd>
+    <dt><code>nosbp2</code></dt><dd>After a level, <code>all</code>, <code>s2idle</code> or <code>deep</code>: takes the FireWire disk driver off for the step and puts it back after. An experiment for Macs that hang with a FireWire disk attached. Without it, <code>sleepcheck</code> refuses while a FireWire disk is attached.</dd>
+  </dl>
+  <p>Each step is written to external storage before it starts, so a hang leaves a trail showing which step began last. <b>A real sleep can hang a Mac that has trouble sleeping</b>, and it then needs a long press of the power button.</p>
+  <pre class="wrap" data-label="example"><code>sleepcheck all
+sleepcheck deep nosbp2</code></pre>
+</section>
+
+<h2 id="session">Boot and the session</h2>
+
+<section class="cmd-box" id="cmd-boot">
+  <header><h3><code>boot</code> <code class="args">say &lt;text&gt;</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Has Boot say something in his own box on the screen showing. Up to 60 characters.</p>
+  <pre class="wrap" data-label="example"><code>boot say hello</code></pre>
+</section>
+
+<section class="cmd-box" id="cmd-clear">
+  <header><h3><code>clear</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Clears the console's output. The run's full log keeps everything.</p>
+</section>
+
+<section class="cmd-box" id="cmd-close">
+  <header><h3><code>close</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Closes the console, like <kbd>Esc</kbd>.</p>
+</section>
+
+<section class="cmd-box" id="cmd-quit">
+  <header><h3><code>quit</code> <code class="args">restart</code> <code class="args">shutdown</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Opens the screen's own question, the one <kbd>Esc</kbd> asks, with that choice picked, and closes the console. Nothing happens until you confirm. <code>exit</code> is another name for <code>quit</code>.</p>
+</section>
+
+<section class="cmd-box" id="cmd-help">
+  <header><h3><code>?</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Lists the commands with their arguments and a tag for each kind, with a legend under the list. <code>help</code> does the same.</p>
+</section>
+
+<h2 id="dev">Dev builds</h2>
+<p>Development builds of OmaBoot? Live have a few more commands for the people building it. Release builds leave them out entirely. Among them are commands that set a result by hand. Using one marks the run: the console says so on the frame's top edge, and DoesItOmarchy.com refuses a report from a marked run. A report like that can still be saved to external storage.</p>
+</div>
