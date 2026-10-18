@@ -130,6 +130,7 @@ svg.boot .lids, svg.boot .tip { opacity: 0; }
   border-radius: 2px; padding: 12px 18px; transition: background-color .15s, border-color .15s; }
 .button:hover { background: color-mix(in srgb, var(--hue) 26%, var(--bg)); border-color: var(--hue); }
 .button.ghost { color: var(--ink); background: transparent; border-color: var(--line-2); }
+.button.tba, .button.tba:hover { cursor: default; color: var(--faint); background: transparent; border-style: dashed; border-color: var(--line-2); }
 .button.ghost:hover { border-color: var(--quiet); background: var(--panel); }
 
 /* ── Home: the hero ─────────────────────────────────────────────────────────────────────── */

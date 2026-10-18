@@ -246,11 +246,14 @@ def verified_html(rels):
 # disc does for the tests; these also prove the bytes came back right. They don't change with each
 # release, so they have one place: data/test-media.json's "base" on get.omaboot.live, with their
 # SHA256SUMS, its signature ("signed": once the owner has signed it) and allowed_signers.
+# "available": false while they're off get.omaboot.live (owner, 2026-10-18: until the first release,
+# re-signed with the new release keys): the cards stay, their downloads say TBA.
 def load_test_media():
     path = os.path.join(DATA, "test-media.json")
     tm = json.load(open(path))
-    if not str(tm.get("base", "")).startswith("https://") or not tm["base"].endswith("/") or not isinstance(tm.get("signed"), bool):
-        sys.exit(f"{path}: base must be an https:// address ending in /, signed true or false")
+    if not str(tm.get("base", "")).startswith("https://") or not tm["base"].endswith("/") or not isinstance(tm.get("signed"), bool) \
+            or not isinstance(tm.get("available", True), bool):
+        sys.exit(f"{path}: base must be an https:// address ending in /, signed and available true or false")
     for k in ("file", "disc"):
         m = tm.get(k) or {}
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", str(m.get("name", ""))) or not isinstance(m.get("size"), int) \
@@ -271,12 +274,16 @@ def test_media_html():
 
     def get(k):
         m = tm[k]
+        if not tm.get("available", True):
+            return f'<p class="get"><span class="button ghost tba" aria-disabled="true">{m["name"]}: {FP_TBA}</span></p>'
         return (f'<p class="get"><a class="button ghost" href="{base}{m["name"]}">Download {m["name"]}</a>'
                 f'<span class="quiet">{m["size"] / 1e6:.1f} MB</span></p>'
                 f'<p class="tag">SHA256</p><pre class="wrap" data-label="the SHA256 of {m["name"]}"><code>{m["sha256"]}</code></pre>')
     sums = f'<a href="{base}SHA256SUMS"><code>SHA256SUMS</code></a>'
     check = (f'Their checksums are in {sums}, signed with the release keys (<a href="{base}SHA256SUMS.sig"><code>SHA256SUMS.sig</code></a>): '
              f'<a href="/verify/">check them</a> as you would the image.' if tm["signed"] else f'Their checksums are in {sums}.')
+    if not tm.get("available", True):
+        check = 'Both come with the first release, with their checksums signed with the release keys.'
     return f'''<div class="media">
 <article class="media-card">{ICON_FILE}<div>
 <p class="role">USB · SD card · FireWire</p><h3>Test file</h3>
