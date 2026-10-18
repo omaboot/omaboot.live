@@ -361,6 +361,7 @@ ul.keys { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 12
 .key-card p { margin: 0 0 12px; color: var(--quiet); }
 .key-card pre { margin: 0; background: var(--bg); }
 .key-card pre code { font-size: 13px; background: none; }
+.key-card .fp-tba { margin: 0; font: 13px/1.5 var(--mono); color: var(--faint); padding: 10px 14px; border: 1px dashed var(--line-2); border-radius: 2px; }
 @media (max-width: 560px) { .key-card { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 16px 14px; } .key-icon { width: 32px; height: 32px; } }
 /* the FAQ, closing Docs */
 .docs-faq { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--line); }

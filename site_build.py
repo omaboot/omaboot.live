@@ -479,6 +479,9 @@ def signers():
     return out
 
 
+FP_TBA = "TBA on first release"
+
+
 def signers_html():
     """The keys as cards, one per row, release key first: an icon, its role, the fingerprint with
     a copy button (copy.js) (owner, 2026-10-18)."""
@@ -487,13 +490,15 @@ def signers_html():
              '<circle cx="9.4" cy="14" r="2.3"/><path d="M11.7 14h4.6M15 14v2.1"/>')
     roles = {"omaboot-release": ("Release key", key, "Signs every release, each with the maintainer's approval."),
              "omaboot-release-backup": ("Backup key", paper, "Kept offline, on paper. Signs only a release that ships a new key list, if the release key is ever lost.")}
-    order = sorted(signers(), key=lambda k: k[3] != "omaboot-release")
+    # Until the first release the keys aren't published (owner, 2026-10-18): the cards say so.
+    order = sorted(signers(), key=lambda k: k[3] != "omaboot-release") or [(None, None, None, c, None) for c in roles]
     cards = []
     for _, _, _, c, fp in order:
         name, icon, role = roles.get(c, (c, key, ""))
+        shown = (f'<pre class="fp" data-copy="Copy the {name.lower()}\'s fingerprint"><code>{fp}</code></pre>' if fp
+                 else f'<p class="fp-tba">Fingerprint: {FP_TBA}</p>')
         cards.append(f'<li class="key-card"><svg class="key-icon" viewBox="0 0 24 24" aria-hidden="true">{icon}</svg>'
-                     f'<div><h3>{name}</h3><p>{role}</p>'
-                     f'<pre class="fp" data-copy="Copy the {name.lower()}\'s fingerprint"><code>{fp}</code></pre></div></li>')
+                     f'<div><h3>{name}</h3><p>{role}</p>{shown}</div></li>')
     return f'<ul class="keys">{"".join(cards)}</ul>'
 
 
@@ -519,7 +524,7 @@ def fill(body, cfg, rels, todos, slug, tests):
         "{{HERO_ART}}": open(os.path.join(DATA, "hero-imac.svg")).read().strip(),
         "{{VERIFIED}}": verified_html(rels), "{{TEST_MEDIA}}": test_media_html(),
         "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{SIGNERS}}": signers_html(),
-        "{{FP_RELEASE}}": signers()[0][4], "{{ISO}}": html.escape(iso),
+        "{{FP_RELEASE}}": signers()[0][4] if signers() else FP_TBA, "{{ISO}}": html.escape(iso),
         "{{SOURCE}}": link(cfg["source"], "the source code") + ("" if cfg["source"] else " (published on GitHub with the first release)"),
         "{{IMAGE_REPO}}": link(cfg["image_repo"], "the image's build repository"),
     }
@@ -617,7 +622,8 @@ def document(cfg, rels, slug, title, desc, body, tests=None):
     source = f' / {link(cfg["source"], "Source")}' if cfg["source"] else ""
     latest = newest(rels, "live")
     download = f'Download {html.escape(latest["version"])}' if latest else "Download"
-    keys = "".join(f'<span>{"Release" if c == "omaboot-release" else "Backup"} key <code>{fp}</code></span>' for _, _, _, c, fp in signers())
+    keys = ("".join(f'<span>{"Release" if c == "omaboot-release" else "Backup"} key <code>{fp}</code></span>' for _, _, _, c, fp in signers())
+            or f'<span>Release keys: {FP_TBA}</span>')
     return f'''<!doctype html>
 <html lang="en">
 <head>
