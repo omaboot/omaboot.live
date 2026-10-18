@@ -54,7 +54,8 @@ OCTOCAT = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
 NAV = [("download", "Download"), ("verify", "Verify"), ("docs", "Docs")]
 GUIDES = ["write", "privacy"]  # in Docs and the footer, not the bar; they count as Docs there
 FOOTER_ONLY = GUIDES
-WIDE = {"index", "download", "docs"}  # pages that lay out their own width; the others read as prose
+SUBPAGES = {"docs/console": "console"}  # slug -> its pages/ file: pages that live under /docs/ but aren't tests
+WIDE = {"index", "download", "docs", "docs/console"}  # pages that lay out their own width; the others read as prose
 
 # ── Palette (boot-wip/boot-live-proto.src.html, "OmaBoot?") ─────────────────────────────────
 # Boot's own colours stay the same in both themes: he's a character, not text.
@@ -448,7 +449,7 @@ def test_body(t, c):
     blk = lambda h, body: f'<section class="blk"><h2>{h}</h2>{body}</section>' if body else ""
     p = lambda s: f"<p>{html.escape(s)}</p>" if s else ""
     hw = "".join(f"<li>{html.escape(x)}</li>" for x in c["hardware"])
-    pits = "".join(f'<li><span class="kind k-{f["kind"]}">{KIND[f["kind"]]}</span><span>{html.escape(f["text"])}</span></li>' for f in c["pitfalls"])
+    pits = "".join(f'<li class="p-{f["kind"]}"><span class="kind k-{f["kind"]}">{KIND[f["kind"]]}</span><span>{html.escape(f["text"])}</span></li>' for f in c["pitfalls"])
     pager = '<nav class="pager" aria-label="Tests">' + (
         f'<a href="/docs/{prev["slug"]}/">← {html.escape(prev["title"])}</a>' if prev else "<span></span>") + (
         f'<a href="/docs/{nxt["slug"]}/">{html.escape(nxt["title"])} →</a>' if nxt else "<span></span>") + "</nav>"
@@ -533,7 +534,62 @@ def asset_version(name):
     return hashlib.sha256(open(os.path.join(HERE, name), "rb").read()).hexdigest()[:10]
 
 
-def document(cfg, rels, slug, title, desc, body):
+# ── Docs index: a sidebar on every docs page (a disclosure on narrow screens) ───────────────
+DOCS_GUIDES = [("/docs/", "Docs overview"), ("/write/", "Flash a USB stick"), ("/verify/", "Verify a download"),
+               ("/docs/console/", "Console commands"), ("/docs/#bootwatch", "boot.watch"), ("/docs/#t2", "T2 Macs"),
+               ("/privacy/", "What gets sent"), ("/docs/#faq", "FAQ")]
+
+
+def page_toc(body):
+    """The page's own sections, from its headings, for the top of the sidebar (long pages only)."""
+    items = []
+    for m in re.finditer(r'<section class="([^"]*)" id="([^"]+)">\s*<h2>(.*?)</h2>', body, re.S):
+        if "docs-area" not in m.group(1):
+            items.append((m.start(), m.group(2), re.sub(r"<[^>]+>", "", m.group(3)).split(":")[0], 0))
+    for m in re.finditer(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S):
+        items.append((m.start(), m.group(1), re.sub(r"<[^>]+>", "", m.group(2)), 0))
+    for m in re.finditer(r'<section class="cmd-box" id="(cmd-[^"]+)">\s*<header><h3><code>(.*?)</code>', body, re.S):
+        items.append((m.start(), m.group(1), m.group(2), 1))
+    return [i[1:] for i in sorted(items)]
+
+
+def docs_nav_inner(slug, tests, body):
+    cur = "/docs/" if slug == "docs" else f"/{slug}/"
+    out = []
+    toc = page_toc(body) if slug == "docs/console" else []
+    if toc:
+        rows, chips = "", ""
+        for i, t, lv in toc + [("", "", 0)]:  # commands under a heading go on one wrapped line, to keep the list short
+            if lv == 1:
+                chips += f'<a href="#{i}">{html.escape(t)}</a>'
+                continue
+            if chips:
+                rows += f'<li class="chips">{chips}</li>'
+                chips = ""
+            if i:
+                rows += f'<li><a href="#{i}">{html.escape(t)}</a></li>'
+        out.append(f'<h2>On this page</h2><ul class="side-list">{rows}</ul>')
+    rows = "".join(f'<li><a href="{h}"{" aria-current=\"page\"" if h == cur else ""}>{html.escape(t)}</a></li>' for h, t in DOCS_GUIDES)
+    out.append(f'<h2>Docs</h2><ul class="side-list">{rows}</ul>')
+    here = next((c for c in tests["criteria"] if slug == f"docs/{c['slug']}"), None)
+    groups = []
+    for a in tests["areas"]:
+        cs = [c for c in tests["criteria"] if c["area"] == a["name"]]
+        li = "".join(f'<li><a href="/docs/{c["slug"]}/"{" aria-current=\"page\"" if c is here else ""}>{html.escape(c["title"])}</a></li>' for c in cs)
+        opened = " open" if here and here["area"] == a["name"] else ""
+        groups.append(f'<details class="side-area"{opened}><summary>{html.escape(a["name"])} <span>{len(cs)}</span></summary><ul class="side-list">{li}</ul></details>')
+    out.append(f'<h2>Tests</h2>{"".join(groups)}')
+    return "".join(out)
+
+
+def docs_layout(slug, tests, body):
+    inner = docs_nav_inner(slug, tests, body)
+    return (f'<div class="docs-layout"><aside class="docs-side"><nav aria-label="Docs">{inner}</nav></aside>'
+            f'<div class="docs-main"><details class="docs-menu"><summary>Docs menu</summary><nav aria-label="Docs, short list">{inner}</nav></details>'
+            f'{body.strip()}</div></div>')
+
+
+def document(cfg, rels, slug, title, desc, body, tests=None):
     path = "/" if slug == "index" else f"/{slug}/"
     section = "docs" if slug.startswith("docs/") or slug in GUIDES else slug
     nav = "".join(f'<a href="/{s}/"{" aria-current=\"page\"" if s == section else ""}>{t}</a>' for s, t in NAV)
@@ -542,6 +598,8 @@ def document(cfg, rels, slug, title, desc, body):
             f'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="{OCTOCAT}"/></svg>{cfg["repo"].rsplit("/", 1)[1]}</a>')
     if slug not in WIDE:
         body = f'<div class="prose">{body.strip()}</div>'
+    if tests and section == "docs":
+        body = docs_layout(slug, tests, body)
     cls = "page-" + slug.replace("/", "-") + (" page-test" if slug.startswith("docs/") else "")
     full_title = cfg["name"] if slug == "index" else f"{title} · {cfg['name']}"
     url = cfg["site"] + path
@@ -627,6 +685,8 @@ def build(out, releases_file, reports):
     tests = load_tests()
     slugs = ["index"] + [s for s, _ in NAV] + FOOTER_ONLY
     pages = [(slug, *read_page(slug)) for slug in slugs + ["404"]]
+    for slug, src in SUBPAGES.items():
+        pages.append((slug, *read_page(src)))
     for c in tests["criteria"]:
         pages.append((f"docs/{c['slug']}", c["title"], f"How OmaBoot? Live tests {c['title'].lower()} ({c['id']}) on an Intel Mac, how it decides, and how sure it is.", test_body(tests, c)))
     for r in rels:
@@ -635,11 +695,11 @@ def build(out, releases_file, reports):
                           f"OmaBoot? {r['version']} compared with the official Omarchy {r['omarchy']} ISO: every package and file that differs, and why.",
                           release_body(r, rels, cfg)))
     for slug, title, desc, body in pages:
-        doc = document(cfg, rels, slug, title, desc, fill(body, cfg, rels, todos, slug, tests))
+        doc = document(cfg, rels, slug, title, desc, fill(body, cfg, rels, todos, slug, tests), tests)
         target = os.path.join(out, "404.html") if slug == "404" else os.path.join(out, "" if slug == "index" else slug, "index.html")
         os.makedirs(os.path.dirname(target), exist_ok=True)
         open(target, "w").write(doc)
-    slugs += [f"docs/{c['slug']}" for c in tests["criteria"]] + [f"releases/{r['version']}" for r in rels if r.get("report")]
+    slugs += list(SUBPAGES) + [f"docs/{c['slug']}" for c in tests["criteria"]] + [f"releases/{r['version']}" for r in rels if r.get("report")]
     shutil.copy2(os.path.join(HERE, "site.css"), os.path.join(out, "site.css"))
     shutil.copy2(os.path.join(HERE, "copy.js"), os.path.join(out, "copy.js"))
     shutil.copytree(os.path.join(HERE, "assets"), os.path.join(out, "assets"))
