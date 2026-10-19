@@ -517,9 +517,11 @@ def fixes_html(fixes, tests, cfg):
         upstream = "<br>".join(f'<a href="{e(u["url"])}" rel="noopener">{e(u["title"])}</a>' for u in f.get("upstream", []))
         if f.get("upstream_note"):
             upstream += ("<br>" if upstream else "") + e(f["upstream_note"])
-        source = "".join(f'<span class="src">' + (f'<a href="{e(repo)}/blob/HEAD/{e(s["path"])}"><code>{e(s["path"])}</code></a>' if repo else f'<code>{e(s["path"])}</code>')
+        # a source item names its own repository ("repo": boot-live) when it isn't in the image's build repository
+        source = "".join(f'<span class="src">' + (f'<code>{e(s["repo"])}: {e(s["path"])}</code>' if s.get("repo") else
+                                                   f'<a href="{e(repo)}/blob/HEAD/{e(s["path"])}"><code>{e(s["path"])}</code></a>' if repo else f'<code>{e(s["path"])}</code>')
                          + f' {e(s["what"])}</span>' for s in d["source"])
-        if not repo:
+        if not repo and any(not s.get("repo") for s in d["source"]):
             source += '<span class="quiet">In the image\'s build repository, published with the first release.</span>'
         groups = [("Where it acts", [("Hardware", e(f["hardware"])), ("Devices", devices), ("Configurations", cfgs(f.get("configs", []))),
                                      ("In OmaBoot? Live", e(d["applies"]))]),
