@@ -1,0 +1,174 @@
+{
+ "_source": "https://doesitomarchy.com/api/v1/snapshot (fixes), by tools/sync_fixes.py: don't edit by hand",
+ "fixes": [
+  {
+   "id": "omaboot.radeon-imac10-1-panel-clock",
+   "name": "radeon panel clock fix",
+   "changes": "Corrects the built-in panel's clock in radeon's in-memory copy of the video BIOS's panel table: the BIOS says 108 MHz, the panel's EDID 138.5 MHz. Without it, the screen splits into distorted parts unless the Mac boots with nomodeset. It never writes the ROM. OmaBoot? Live also boots this Mac with radeon.dpm=0 radeon.pcie_gen2=0 radeon.uvd=0, as the install fix does: with radeon's defaults the GPU locks up under load.",
+   "hardware": "The 21.5-inch iMac10,1 with the Radeon HD 4670. It acts only on GPU 1002:9488 with subsystem 106b:00b6 driving a 1920×1080 panel, so every other Mac runs stock radeon.",
+   "devices": [
+    {
+     "id": "pci:1002:9488",
+     "subsystem": "106b:00b6"
+    }
+   ],
+   "configs": [
+    "imac10-1-21-late-2009-b"
+   ],
+   "criteria": [
+    "display.native-resolution",
+    "graphics.discrete"
+   ],
+   "upstream": [
+    {
+     "title": "omarchy-vintage-intel-imac-fix 0d5a406a31 (patches/panel-encoder-combined.patch)",
+     "url": "https://github.com/choyer/omarchy-vintage-intel-imac-fix/commit/0d5a406a31"
+    }
+   ],
+   "tested_on": [
+    "imac10-1-21-late-2009-b"
+   ],
+   "since": "dev 1d36b14",
+   "levels": [
+    {
+     "level": "driver-patch",
+     "what": "radeon, rebuilt for both kernels"
+    },
+    {
+     "level": "boot-options",
+     "what": "radeon.dpm=0 radeon.pcie_gen2=0 radeon.uvd=0, on the iMac10,1 only"
+    }
+   ],
+   "url": "https://doesitomarchy.com/fixes#omaboot.radeon-imac10-1-panel-clock"
+  },
+  {
+   "id": "omaboot.applesmc-led-container-of",
+   "name": "applesmc keyboard backlight fix",
+   "changes": "Fixes an oops while applesmc starts on Macs whose SMC has a keyboard-backlight key: t2linux patch 3001 takes the SMC's data from the backlight's LED device, which doesn't hold it. A one-line container_of fix. With it, fans, the light sensor and the keyboard backlight work in a live boot.",
+   "hardware": "Macs without a T2 chip whose SMC has a keyboard-backlight key, booted on OmaBoot?'s T2 kernel (linux-t2), which carries the t2linux applesmc patches. Other Macs load it without harm.",
+   "criteria": [
+    "input.keyboard-backlight",
+    "input.ambient-light-sensor",
+    "thermal.fans"
+   ],
+   "upstream": [
+    {
+     "title": "t2linux kernel patches",
+     "url": "https://github.com/t2linux/linux-t2-patches"
+    }
+   ],
+   "upstream_note": "Not upstream yet: a pull request to t2linux is planned.",
+   "tested_on": [
+    "macbookair5-2-mid-2012-a",
+    "imac10-1-21-late-2009-b",
+    "imac18-3-5k-2017-a"
+   ],
+   "since": "dev 1d36b14",
+   "levels": [
+    {
+     "level": "driver-patch",
+     "what": "applesmc, rebuilt for the T2 kernel"
+    },
+    {
+     "level": "driver-settings",
+     "what": "the official live system's applesmc blacklist, removed"
+    }
+   ],
+   "url": "https://doesitomarchy.com/fixes#omaboot.applesmc-led-container-of"
+  },
+  {
+   "id": "omaboot.lid-wake-closed-only",
+   "name": "lid wake fix",
+   "changes": "Arms the lid's wake only for a sleep that starts with the lid closed. On these Macs the lid's wake is a bit in the embedded controller, set before every sleep, so a sleep that starts with the lid open (Suspend from the menu, an idle suspend) is woken by the lid a few seconds in. A small systemd-sleep hook turns the lid's wake off in /proc/acpi/wakeup for such a sleep and back on after it; a sleep from closing the lid still wakes when it opens. OmaBoot? Live's sleep test naps once with the stock setting and, if the lid woke it, once more with the fix.",
+   "hardware": "Mac laptops whose lid wake goes through the embedded controller: the lid's ACPI _PSW sets a wake-on-lid-open bit. Found on the MacBook Air (13-inch, Mid 2012); every other Mac laptop whose ACPI tables were checked has the same pattern (8 models from 2009 to 2019, MacBook Pro and MacBook Air, in public hardware probes). It does nothing on a Mac without a lid, or when the lid is closed.",
+   "criteria": [
+    "power.sleep-wake"
+   ],
+   "upstream": [
+    {
+     "title": "Omarchy (Apple hardware fixes in install/hardware/apple)",
+     "url": "https://github.com/omacom/omarchy"
+    }
+   ],
+   "upstream_note": "Not upstream yet: a proposal to Omarchy's Apple hardware fixes is planned.",
+   "tested_on": [
+    "macbookair5-2-mid-2012-a"
+   ],
+   "since": "dev 327b2e3",
+   "levels": [
+    {
+     "level": "system",
+     "what": "omaboot-lid-wake, a systemd-sleep hook"
+    }
+   ],
+   "url": "https://doesitomarchy.com/fixes#omaboot.lid-wake-closed-only"
+  }
+ ],
+ "fix_levels": [
+  {
+   "id": "desktop",
+   "name": "Desktop",
+   "means": "Omarchy's own settings: Hyprland, the apps, the look."
+  },
+  {
+   "id": "system",
+   "name": "System service",
+   "means": "Services, hooks and rules that run outside the kernel: systemd, udev."
+  },
+  {
+   "id": "driver-settings",
+   "name": "Driver settings",
+   "means": "Which drivers load, and their options (modprobe.d)."
+  },
+  {
+   "id": "new-driver",
+   "name": "New driver",
+   "means": "A driver the kernel Omarchy ships doesn't have."
+  },
+  {
+   "id": "driver-patch",
+   "name": "Driver patch",
+   "means": "A change to a driver Omarchy ships, rebuilt for its exact kernel."
+  },
+  {
+   "id": "kernel",
+   "name": "Kernel",
+   "means": "A change to the kernel itself."
+  },
+  {
+   "id": "boot-options",
+   "name": "Boot options",
+   "means": "Options the boot menu passes to the kernel."
+  },
+  {
+   "id": "firmware",
+   "name": "Firmware",
+   "means": "The Mac's own firmware and its settings. OmaBoot? never changes them."
+  }
+ ],
+ "configs": {
+  "imac10-1-21-late-2009-b": {
+   "name": "iMac (21.5-inch, Late 2009)",
+   "identifier": "iMac10,1",
+   "url": "https://doesitomarchy.com/mac/iMac10-1#cfg-imac10-1-21-late-2009-b"
+  },
+  "imac18-3-5k-2017-a": {
+   "name": "iMac (Retina 5K, 27-inch, 2017)",
+   "identifier": "iMac18,3",
+   "url": "https://doesitomarchy.com/mac/iMac18-3#cfg-imac18-3-5k-2017-a"
+  },
+  "macbookair5-2-mid-2012-a": {
+   "name": "MacBook Air (13-inch, Mid 2012)",
+   "identifier": "MacBookAir5,2",
+   "url": "https://doesitomarchy.com/mac/MacBookAir5-2#cfg-macbookair5-2-mid-2012-a"
+  }
+ },
+ "criteria": {
+  "display.native-resolution": "Internal display at native resolution",
+  "graphics.discrete": "Discrete GPU acceleration",
+  "input.ambient-light-sensor": "Ambient light sensor",
+  "input.keyboard-backlight": "Keyboard backlight",
+  "power.sleep-wake": "Sleep and wake",
+  "thermal.fans": "Fans respond to load"
+ }
+}

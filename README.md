@@ -8,7 +8,8 @@ Static HTML, no JavaScript, no cookies, no third-party anything. Built by one Py
 
 ```sh
 python3 site_build.py                 # writes dist/, checks it, lists the owner TODOs
-make check                            # the same, then the scrub check (tools/scrub-check.sh)
+make check                            # the same, then the fixes copy check and the scrub check
+make sync-fixes                       # copy the OmaBoot? fixes from DoesItOmarchy.com (data/fixes.json)
 python3 site_build.py --serve 8091    # preview dist/ at http://127.0.0.1:8091/ (Ctrl+C stops)
 ```
 
@@ -36,6 +37,8 @@ The build fails if a page links to something that doesn't exist, or if a `{{toke
 | `data/releases.example.json` | The shape of one release entry. |
 | `data/editions.json` | The editions (Live, Omarchy, Lab): name, role, one line, size, and what the card says until it has a release. Each needs its startup-disk icon in `assets/editions/<id>.png`. |
 | `data/tests.json` | The criteria and how OmaBoot? Live tests each one (how it tests, how it decides, how sure it is, what was seen on a real Mac, what could mislead it). Docs makes `/docs/` and one page per test from it. Made from the criteria review (`boot-wip/reviews/criteria-review.html` in the project, boot-live 0.6.3 dev) with dev history taken out; update it when a test changes. |
+| `data/fixes.json` | The OmaBoot? fixes, copied from DoesItOmarchy.com's fix registry (its `data/fixes.yaml`, through `/api/v1/snapshot`) by `make sync-fixes`: each fix with the levels of the system it lives at (driver patch, boot options, …), the list of those levels (`fix_levels`), and the names of the configurations and criteria the fixes mention. Don't edit it by hand: the registry is the only place a fix is defined, since reports are checked against its IDs. `make check` (and so CI) fails while the copy is out of date; it passes with a notice when DoesItOmarchy.com can't be reached. |
+| `data/fixes-detail.json` | What this site adds about each fix for `/fixes/`: the problem, how it works, when it acts in OmaBoot? Live, how a run shows it, what it leaves alone, its source files, and the image paths it adds (so a release's difference report links to it). The build fails when a fix in `data/fixes.json` has no entry here, or the other way round. Test pages list the fixes that can change their result. |
 | `assets/screens/` | Real screens for the home page, drawn by boot-live's own code: `go run ./tools/screens -only NAME -size 180x56x16 -out DIR` (the MacBook Air 13-inch console), with the shown version set to a release (`Version:` in `tools/screens/main.go`). Hero: `hero-quick-pass.webp`, the quick pass and its results as the demo plays them, drawn with `go run ./tools/screens -movie 12 -size 180x56x16 -out FRAMES` and encoded with `ffmpeg -framerate 12 -i FRAMES/%05d.png -c:v libwebp_anim -lossless 1 -loop 0 hero-quick-pass.webp` (lossless, so the console's pixels stay sharp); `hero-results.png` is its last frame, shown instead when the reader asks for less motion; gallery: `4-quick-heat`, `h20-wifi-moving`, `h11-mic-tone-2`, `6-finish-anim`. |
 | `assets/editions/` | The editions' startup-disk icons: the 256 px PNG inside each release `.VolumeIcon.icns` of the image build. |
 | `assets/fonts/` | Commit Mono (body) and iA Writer Quattro as Nerd Fonts' iM Writing Quattro (headings), Regular and Bold, both OFL, cut to Latin from the Nerd Fonts v3.5.1 "Propo" builds; the Omarchy Font. Self-hosted: the CSP allows fonts from the site only. |

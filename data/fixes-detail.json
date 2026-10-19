@@ -1,0 +1,77 @@
+{
+ "_about": "What only omaboot.live says about each OmaBoot? fix, keyed by its ID in data/fixes.json (the registry's copy, tools/sync_fixes.py). The build fails when a fix has no entry here or an entry has no fix. short: who it's for, in a line, for the list at the top. problem: what goes wrong without it. detail: how it works, beyond the registry's own words. applies: when it acts in OmaBoot? Live. proof: how a run knows it took effect. tests: how the tests use it (optional). leaves: what it never touches. source: the files in the image's build repository. files: paths it adds or removes in the image, so a release's difference report can link here.",
+ "omaboot.radeon-imac10-1-panel-clock": {
+  "short": "The iMac10,1's built-in screen, distorted on the Radeon HD 4670 model.",
+  "problem": "On the 21.5-inch iMac (Late 2009) with the Radeon HD 4670, the built-in screen splits into distorted parts as soon as radeon takes over. The only way to a picture is nomodeset, with no acceleration and nothing for the display tests to judge.",
+  "detail": [
+   "The patched radeon checks everything before it changes anything: the GPU must be 1002:9488 with subsystem 106b:00b6, the panel 1920×1080 with an EDID that says 138.5 MHz, and the video BIOS's panel table a version 1.2 table that says 108 MHz. Only then does it correct the clock in its in-memory copy of the table and set the panel's colour format (RGB888, FPDI), keeping the table's dual-link, dithering and spread-spectrum settings.",
+   "The boot menu adds radeon.dpm=0 radeon.pcie_gen2=0 radeon.uvd=0 when the Mac's model is iMac10,1. They're harmless on the iMac10,1 with the GeForce 9400M, which doesn't use radeon."
+  ],
+  "applies": "Both kernels, Omarchy's standard kernel and the T2 kernel, carry the patched radeon. Every other GPU, and every other Mac, gets radeon exactly as Omarchy ships it.",
+  "proof": "The module logs “iMac LVDS test: ATOM panel clock 108000 -> 138500 kHz” when it corrects the table. OmaBoot? Live looks for that line, and lists the fix only when it finds it.",
+  "leaves": "The video BIOS ROM, and everything else on the Mac: the change lives in the driver's memory and is gone at the next restart.",
+  "source": [
+   {
+    "path": "builder/omaboot/patches/0002-radeon-imac10-1-panel-clock.patch",
+    "what": "the patch"
+   },
+   {
+    "path": "builder/omaboot/build-modules.sh",
+    "what": "builds radeon for each kernel on the image, once an unpatched rebuild has matched the shipped module byte for byte"
+   },
+   {
+    "path": "builder/omaboot/grub-live-entries.cfg",
+    "what": "the iMac10,1 boot options"
+   }
+  ],
+  "files": [
+   "usr/lib/modules/*/updates/radeon.ko*"
+  ]
+ },
+ "omaboot.applesmc-led-container-of": {
+  "short": "Fans, light sensor and keyboard backlight on Macs without a T2 chip, on the T2 kernel.",
+  "problem": "On a Mac without a T2 chip whose SMC has a keyboard-backlight key, the T2 kernel's applesmc crashes while it starts. Without applesmc there are no fan readings, no light sensor and no keyboard backlight, and Omarchy's official live system doesn't load it at all.",
+  "detail": [
+   "t2linux's applesmc patches add keyboard-backlight support. Patch 3001's brightness function takes the SMC's data from the LED device, which holds the LED, not the SMC. Registering the LED sets its brightness straight away, so applesmc writes through a bad pointer before it has finished starting. The fix takes the SMC's data with container_of, as the patch's own work function already does: one line.",
+   "With the fixed module on the image, OmaBoot? Live drops the official live system's applesmc blacklist, so applesmc loads as it does on an installed Omarchy."
+  ],
+  "applies": "The T2 kernel (linux-t2), which carries t2linux's patches. T2 Macs start it; any Mac starts it with “T2 kernel” under “OmaBoot? Live: more options…”. Other Macs start Omarchy's standard kernel, whose applesmc doesn't have the bug and stays as Omarchy ships it.",
+  "proof": "OmaBoot? Live lists it when applesmc was loaded from the image's updates/ folder and registered the keyboard backlight (smc::kbd_backlight), the step that crashed without it.",
+  "tests": "The fan, light sensor and keyboard backlight tests need applesmc. Without it, they end as not tested (live limit).",
+  "leaves": "Everything but that one line of applesmc.",
+  "source": [
+   {
+    "path": "builder/omaboot/patches/0001-applesmc-led-container_of.patch",
+    "what": "the patch"
+   },
+   {
+    "path": "builder/omaboot/build-modules.sh",
+    "what": "finds the t2linux patch set the image's T2 kernel was built with, checks that an unpatched rebuild matches the shipped module, then builds the fixed one"
+   }
+  ],
+  "files": [
+   "usr/lib/modules/*/updates/applesmc.ko*",
+   "etc/modprobe.d/blacklist-applesmc.conf"
+  ]
+ },
+ "omaboot.lid-wake-closed-only": {
+  "short": "Mac laptops woken by the lid a few seconds into a sleep.",
+  "problem": "On the MacBook Air (13-inch, Mid 2012), a sleep that starts with the lid open, such as Suspend from the menu or an idle suspend, is woken by the lid a few seconds in, though nobody touched it.",
+  "detail": [
+   "The lid's ACPI wake method (_PSW) sets a wake-on-lid-open bit in the embedded controller, and Linux calls it before every sleep. With the lid already open, the controller wakes the Mac almost at once.",
+   "A small systemd-sleep hook, omaboot-lid-wake, runs before and after every sleep on a Mac. Before a sleep that starts with the lid open, it turns the lid's wake off in /proc/acpi/wakeup, and after the sleep it turns it back on. A sleep that starts with closing the lid is left alone, so opening the lid still wakes the Mac."
+  ],
+  "applies": "Every sleep through systemd (Suspend, an idle suspend) in OmaBoot? Live, on a Mac with a lid, with either kernel.",
+  "proof": "The sleep test puts the kernel to sleep directly, without systemd, so it applies the fix itself: it naps once with the stock setting and, if the lid woke it, once more with the fix. When the second nap sleeps the full time, the result is supported with the lid wake fix, and the report lists it.",
+  "leaves": "Everything but the lid's wake setting, which it changes in memory for one sleep and sets back after.",
+  "source": [
+   {
+    "path": "builder/omaboot/sleep/omaboot-lid-wake",
+    "what": "the hook"
+   }
+  ],
+  "files": [
+   "usr/lib/systemd/system-sleep/omaboot-lid-wake"
+  ]
+ }
+}
