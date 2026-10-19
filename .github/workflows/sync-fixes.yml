@@ -1,0 +1,119 @@
+# Keeps data/fixes.json (the /fixes/ page's copy of DoesItOmarchy.com's fix registry) in step:
+# once a day, and on demand, it runs tools/sync_fixes.py. When the copy changed, it opens (or
+# updates) a "Fixes: sync" pull request from the branch sync-fixes.
+#   - Every fix has its entry in data/fixes-detail.json: it runs the required check on the
+#     branch, squash-merges the pull request and deploys main.
+#   - A fix is new: the build fails until someone writes its entry, so the pull request stays
+#     open and this run fails, which emails the maintainers. Write the entry on the branch.
+# Uses only the workflow's own token. Pull requests and pushes made with it start no workflows,
+# except by workflow_dispatch: so it starts deploy.yml itself, on the branch for the required
+# "check", then on main to deploy. Needs "Allow GitHub Actions to create and approve pull
+# requests" in the repository's Actions settings.
+name: Sync fixes
+
+on:
+  schedule:
+    - cron: "17 7 * * *" # daily, 07:17 UTC: one request to doesitomarchy.com
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "Branch to sync into (main; another only to test this workflow, which then neither merges into main nor deploys)"
+        default: main
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: sync-fixes
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BASE: ${{ inputs.base || 'main' }}
+      BRANCH: ${{ (inputs.base || 'main') == 'main' && 'sync-fixes' || format('sync-fixes-{0}', inputs.base) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.BASE }}
+
+      - name: Sync the copy
+        id: sync
+        run: |
+          python3 tools/sync_fixes.py
+          if git diff --quiet -- data/fixes.json; then
+            echo "data/fixes.json matches DoesItOmarchy.com: nothing to do"
+            echo "changed=false" >>"$GITHUB_OUTPUT"
+          else
+            git diff --stat -- data/fixes.json
+            echo "changed=true" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Build with the new copy
+        id: build
+        if: steps.sync.outputs.changed == 'true'
+        continue-on-error: true
+        run: python3 site_build.py 2>&1 | tee "$RUNNER_TEMP/build.log"; exit "${PIPESTATUS[0]}"
+
+      - name: Open or update the pull request
+        id: pr
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git commit -q -m "Fixes: sync from DoesItOmarchy.com" -- data/fixes.json
+          git push -q -f origin "$BRANCH"
+          if [ "${{ steps.build.outcome }}" = success ]; then
+            say="Every fix has its entry in \`data/fixes-detail.json\`: the workflow checks, merges and deploys this."
+          else
+            say="**The build fails:** $(grep -m3 -E 'fixes-detail|CHECK FAILED|Error' "$RUNNER_TEMP/build.log" | tr '\n' ' ')
+          A new fix needs its entry in \`data/fixes-detail.json\` (see the wiki's runbook \"Sync the fixes to omaboot.live\"): push it to \`$BRANCH\`, then merge as usual."
+          fi
+          body="The fix registry on DoesItOmarchy.com changed, so \`data/fixes.json\` is synced from https://doesitomarchy.com/api/v1/snapshot by \`tools/sync_fixes.py\` (workflow run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID).
+
+          $say"
+          pr=$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number -q '.[0].number')
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --body "$body" >/dev/null
+          else
+            gh pr create --base "$BASE" --head "$BRANCH" --title "Fixes: sync from DoesItOmarchy.com" --body "$body" >/dev/null
+            pr=$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number -q '.[0].number')
+          fi
+          echo "pull request #$pr"
+          echo "number=$pr" >>"$GITHUB_OUTPUT"
+
+      - name: Check, merge and deploy
+        if: steps.sync.outputs.changed == 'true' && steps.build.outcome == 'success'
+        run: |
+          sha=$(git rev-parse HEAD)
+          run_for() { # the newest deploy.yml run started by workflow_dispatch on $1 at commit $2
+            for _ in $(seq 30); do
+              id=$(gh run list --workflow deploy.yml --branch "$1" --event workflow_dispatch --commit "$2" --limit 1 --json databaseId -q '.[0].databaseId')
+              [ -n "$id" ] && { echo "$id"; return; }
+              sleep 5
+            done
+            echo "no deploy.yml run appeared on $1" >&2; exit 1
+          }
+          gh workflow run deploy.yml --ref "$BRANCH"
+          gh run watch "$(run_for "$BRANCH" "$sha")" --exit-status >/dev/null
+          gh pr merge "${{ steps.pr.outputs.number }}" --squash --subject "Fixes: sync from DoesItOmarchy.com (#${{ steps.pr.outputs.number }})"
+          if [ "$BASE" != main ]; then
+            echo "test run into $BASE: merged, not deployed"
+            exit 0
+          fi
+          git fetch -q origin main
+          merged=$(git rev-parse origin/main)
+          gh workflow run deploy.yml --ref main
+          gh run watch "$(run_for main "$merged")" --exit-status >/dev/null
+          echo "merged and deployed $merged"
+
+      - name: Fail when a fix needs its entry
+        if: steps.sync.outputs.changed == 'true' && steps.build.outcome != 'success'
+        run: |
+          echo "::error::data/fixes.json is synced on pull request #${{ steps.pr.outputs.number }}, but the build fails: a new fix needs its entry in data/fixes-detail.json"
+          exit 1
