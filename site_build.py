@@ -7,7 +7,9 @@ Usage: site_build.py [--releases FILE] [--reports DIR] [--out DIR]
 
 The build reads data/site.json (addresses), data/releases.json (published releases, newest
 first, each with its "edition"; [] until the first one), data/editions.json (Live, Omarchy, Lab),
-data/tests.json (the criteria and how OmaBoot? Live tests each one, for Docs), data/allowed_signers
+data/tests.json (the criteria and how OmaBoot? Live tests each one, for Docs), data/fixes.json (the
+OmaBoot? fixes, copied from DoesItOmarchy.com by tools/sync_fixes.py) and data/fixes-detail.json (what
+this site adds about each, for /fixes/), data/allowed_signers
 (the release keys) and pages/*.html (the copy: each page is an HTML fragment whose first lines are
 <!-- title: ... --> and <!-- description: ... -->), and writes dist/: one directory per page, one
 per test under docs/, 404.html, site.css, assets/ (screens drawn by boot-live's tools/screens,
@@ -18,7 +20,7 @@ and the home page's iMac drawing is data/hero-imac.svg (tools/hero_drawing.py).
 
 Tokens in pages: {{BOOT}} {{BOOT pleased}} (Boot's sprite), {{WORDMARK}}, {{DIO}} (a link to
 DoesItOmarchy.com), {{EDITIONS}} (the editions, with each one's newest release), {{AREAS}} (the
-test areas as tiles), {{DOCS}} (the list of tests), {{SIGNERS}} (the keys), {{FP_RELEASE}},
+test areas as tiles), {{DOCS}} (the list of tests), {{FIXES}} (the fixes), {{SIGNERS}} (the keys), {{FP_RELEASE}},
 {{ISO}} (the newest ISO's file name), {{SOURCE}}, {{IMAGE_REPO}}, {{CONTACT ...}}, {{HERO_ART}} (the
 iMac drawing), {{VERIFIED}} (what the newest release was checked for), {{TEST_MEDIA}} (the test file
 and the test disc, from data/test-media.json).
@@ -32,6 +34,7 @@ directory indexes, 404.html, _redirects and the headers in _headers (including t
 """
 import base64
 import datetime
+import fnmatch
 import hashlib
 import html
 import json
@@ -51,11 +54,11 @@ OCTOCAT = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
            ".54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z")
 
 # Navigation order; the slug is the URL path and the pages/ file name ("index" is /).
-NAV = [("download", "Download"), ("verify", "Verify"), ("docs", "Docs")]
+NAV = [("download", "Download"), ("verify", "Verify"), ("fixes", "Fixes"), ("docs", "Docs")]
 GUIDES = ["write", "privacy"]  # in Docs and the footer, not the bar; they count as Docs there
 FOOTER_ONLY = GUIDES
 SUBPAGES = {"docs/console": "console"}  # slug -> its pages/ file: pages that live under /docs/ but aren't tests
-WIDE = {"index", "download", "docs", "docs/console"}  # pages that lay out their own width; the others read as prose
+WIDE = {"index", "download", "docs", "docs/console", "fixes"}  # pages that lay out their own width; the others read as prose
 
 # ── Palette (boot-wip/boot-live-proto.src.html, "OmaBoot?") ─────────────────────────────────
 # Boot's own colours stay the same in both themes: he's a character, not text.
@@ -330,7 +333,7 @@ CATEGORY = {"unexplained": ("Unexplained", "No rule accounts for it. A release w
 AREA = {"iso": "ISO 9660", "esp": "EFI partition", "rootfs": "root file system"}
 
 
-def release_body(r, rels, cfg):
+def release_body(r, rels, cfg, fixes):
     rep = r["report"]
     c = rep["counts"]
     eds = {e["id"]: e["name"] for e in load_editions()}
@@ -363,7 +366,9 @@ def release_body(r, rels, cfg):
         for g in gs:
             files = "".join(f'<li><span class="area">{AREA.get(a, a)}</span><code>{e(p)}</code><span class="d">{e(d)}</span></li>' for a, p, d in g["files"])
             body = f'<ul class="paths">{files}</ul>' if files else '<p class="quiet">Too many to list here: every path is in <code>diff-report.tsv.gz</code>.</p>'
-            items.append(f'<details><summary><span class="cnt">{g["count"]:,}</span>{e(g["explanation"])}</summary>{body}</details>')
+            fx = [f for f in fixes["fixes"] if any(fnmatch.fnmatch(p, pat) for _, p, _ in g["files"] for pat in f["detail"]["files"])]
+            fx = f' <span class="fix-refs">({", ".join(fix_link(f) for f in fx)})</span>' if fx else ""
+            items.append(f'<details><summary><span class="cnt">{g["count"]:,}</span>{e(g["explanation"])}{fx}</summary>{body}</details>')
         groups.append(f'<section class="dgroup" id="{cat}"><h3>{title} <span class="n">{n:,}</span></h3><p class="quiet">{what}</p>{"".join(items)}</section>')
     same = [x for x in rels if x.get("edition", "live") == r.get("edition", "live")]
     i = same.index(r)
@@ -448,7 +453,95 @@ def docs_html(t):
     return "".join(out)
 
 
-def test_body(t, c):
+def level_chip(levels, key, main=False):
+    return f'<span class="lvl{" main" if main else ""}" title="{html.escape(levels[key]["means"])}">{html.escape(levels[key]["name"])}</span>'
+
+
+# ── Fixes: the registry's copy (data/fixes.json) and this site's detail (data/fixes-detail.json) ──
+def load_fixes():
+    reg = json.load(open(os.path.join(DATA, "fixes.json")))
+    detail = json.load(open(os.path.join(DATA, "fixes-detail.json")))
+    ids = [f["id"] for f in reg["fixes"]]
+    missing = [i for i in ids if i not in detail]
+    extra = [i for i in detail if not i.startswith("_") and i not in ids]
+    if missing or extra:
+        sys.exit("data/fixes-detail.json: " + "; ".join(
+            ([f"no entry for {', '.join(missing)} (new in the registry: write one)"] if missing else [])
+            + ([f"{', '.join(extra)} not in data/fixes.json (gone from the registry, or not synced)"] if extra else [])))
+    for f in reg["fixes"]:
+        f.update(detail=detail[f["id"]])
+    return reg
+
+
+def fix_link(f):
+    return f'<a href="/fixes/#{html.escape(f["id"])}">{html.escape(f["name"])}</a>'
+
+
+def fixes_for(fixes, ids):
+    """The fixes that can change any of these criteria."""
+    return [f for f in fixes["fixes"] if set(f.get("criteria", [])) & set(ids)]
+
+
+def fixes_html(fixes, tests, cfg):
+    """/fixes/: a tile per fix to jump to it, then each fix as a panel: the problem, what it changes
+    and how it works side by side, and its facts in three groups (where it acts, what a run shows,
+    where it comes from)."""
+    e = html.escape
+    titles = {c["id"]: (c["slug"], c["title"]) for c in tests["criteria"]}
+    for c in tests["criteria"]:
+        if c.get("also"):
+            titles[c["also"]] = (c["slug"], c["title"])
+    repo = cfg["image_repo"]
+    cfgs = lambda ids: "<br>".join(f'<a href="{e(fixes["configs"][i]["url"])}">{e(fixes["configs"][i]["name"])} [{e(fixes["configs"][i]["identifier"])}]</a>' for i in ids)
+    crit = lambda i: f'<a href="/docs/{titles[i][0]}/">{e(fixes["criteria"].get(i, titles[i][1]))}</a>' if i in titles else e(fixes["criteria"].get(i, i))
+    levels = {lv["id"]: lv for lv in fixes["fix_levels"]}  # where a fix can live, from the registry (data/fixes.json)
+    chips = lambda f: "".join(level_chip(levels, p["level"], i == 0) for i, p in enumerate(f["levels"]))
+    tiles = "".join(f'<a class="fix-tile" href="#{e(f["id"])}"><span class="fix-num">{n:02d}</span><h2>{e(f["name"])}</h2><p>{e(f["detail"]["short"])}</p>'
+                    f'<span class="lvls">{chips(f)}</span></a>'
+                    for n, f in enumerate(fixes["fixes"], 1))
+    out = [f'<nav class="fix-tiles" aria-label="The fixes">{tiles}</nav>']
+    # the map: every level, top to bottom, with the fixes that live there
+    rows = []
+    for lv in fixes["fix_levels"]:
+        key, name, means = lv["id"], lv["name"], lv["means"]
+        here = [(n, f, i == 0) for n, f in enumerate(fixes["fixes"], 1) for i, p in enumerate(f["levels"]) if p["level"] == key]
+        refs = "".join(f'<a class="lvl-ref{" main" if main else ""}" href="#{e(f["id"])}"><span class="fix-num">{n:02d}</span>{e(f["name"])}</a>' for n, f, main in here)
+        empty = "never touched" if key == "firmware" else "none"
+        rows.append(f'<li class="lvl-row{"" if here else " empty"}{" fw" if key == "firmware" else ""}"><span class="lvl-name">{name}</span>'
+                    f'<span class="lvl-means">{e(means)}</span><span class="lvl-fixes">{refs or f'<span class="quiet">{empty}</span>'}</span></li>')
+    out.append(f'<section class="lvl-map" id="levels"><h2>Where each fix lives</h2><p class="quiet">From what you see down to the firmware. '
+               f'A fix that spans levels is listed at each; its main level is in violet.</p><ol class="lvl-rows">{"".join(rows)}</ol></section>')
+    for n, f in enumerate(fixes["fixes"], 1):
+        d = f["detail"]
+        devices = ", ".join(f'<code>{e(x["id"])}</code>' + (f' subsystem <code>{e(x["subsystem"])}</code>' if x.get("subsystem") else "") for x in f.get("devices", []))
+        upstream = "<br>".join(f'<a href="{e(u["url"])}" rel="noopener">{e(u["title"])}</a>' for u in f.get("upstream", []))
+        if f.get("upstream_note"):
+            upstream += ("<br>" if upstream else "") + e(f["upstream_note"])
+        source = "".join(f'<span class="src">' + (f'<a href="{e(repo)}/blob/HEAD/{e(s["path"])}"><code>{e(s["path"])}</code></a>' if repo else f'<code>{e(s["path"])}</code>')
+                         + f' {e(s["what"])}</span>' for s in d["source"])
+        if not repo:
+            source += '<span class="quiet">In the image\'s build repository, published with the first release.</span>'
+        groups = [("Where it acts", [("Hardware", e(f["hardware"])), ("Devices", devices), ("Configurations", cfgs(f.get("configs", []))),
+                                     ("In OmaBoot? Live", e(d["applies"]))]),
+                  ("What a run shows", [("How a run shows it", e(d["proof"])), ("Tests", e(d.get("tests", ""))),
+                                        ("Results it can change", ", ".join(crit(i) for i in f.get("criteria", []))), ("Leaves alone", e(d["leaves"])),
+                                        ("Tested on", cfgs(f.get("tested_on", [])))]),
+                  ("Where it comes from", [("Since", f'OmaBoot? {e(f["since"])}'), ("Upstream", upstream), ("Source", source)])]
+        facts = "".join(f'<section class="fix-group"><h3>{h}</h3><dl>{"".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in rows if v)}</dl></section>'
+                        for h, rows in groups)
+        how = "".join(f"<p>{e(x)}</p>" for x in d["detail"])
+        out.append(f'<article class="fix" id="{e(f["id"])}">'
+                   f'<header class="fix-head"><span class="fix-num">{n:02d}</span><h2>{e(f["name"])}</h2><code>{e(f["id"])}</code></header>'
+                   f'<div class="fix-levels"><span class="fix-label">Lives in</span><ul>'
+                   + "".join(f'<li>{level_chip(levels, p["level"], i == 0)}<span>{e(p["what"])}</span></li>' for i, p in enumerate(f["levels"])) + '</ul></div>'
+                   f'<p class="fix-problem"><span class="fix-label">Without it</span>{e(d["problem"])}</p>'
+                   f'<div class="fix-text"><section><h3>What it changes</h3><p>{e(f["changes"])}</p></section><section><h3>How it works</h3>{how}</section></div>'
+                   f'<div class="fix-facts">{facts}</div>'
+                   f'<p class="fix-out"><a href="{e(f["url"])}">This fix on DoesItOmarchy.com<span aria-hidden="true"> ↗</span></a></p></article>')
+    return "".join(out)
+
+
+def test_body(t, c, fixes):
     cs = t["criteria"]
     i = cs.index(c)
     prev, nxt = (cs[i - 1] if i else None), (cs[i + 1] if i + 1 < len(cs) else None)
@@ -456,6 +549,8 @@ def test_body(t, c):
     blk = lambda h, body: f'<section class="blk"><h2>{h}</h2>{body}</section>' if body else ""
     p = lambda s: f"<p>{html.escape(s)}</p>" if s else ""
     hw = "".join(f"<li>{html.escape(x)}</li>" for x in c["hardware"])
+    fx = "".join(f'<li>{fix_link(f)}: {html.escape(f["detail"]["problem"])} A result it changes says <em>with OmaBoot? {html.escape(f["name"])}</em>.</li>'
+                 for f in fixes_for(fixes, [c["id"]] + ([c["also"]] if c.get("also") else [])))
     pits = "".join(f'<li class="p-{f["kind"]}"><span class="kind k-{f["kind"]}">{KIND[f["kind"]]}</span><span>{html.escape(f["text"])}</span></li>' for f in c["pitfalls"])
     pager = '<nav class="pager" aria-label="Tests">' + (
         f'<a href="/docs/{prev["slug"]}/">← {html.escape(prev["title"])}</a>' if prev else "<span></span>") + (
@@ -469,6 +564,7 @@ def test_body(t, c):
 {blk("How sure it is", p(c["why"]))}
 {blk("On a real Mac", f'<ul class="hw">{hw}</ul>' if hw else "")}
 {blk("What could mislead it", f'<ul class="pits">{pits}</ul>' if pits else "")}
+{blk("OmaBoot? fixes", f'<ul class="hw">{fx}</ul>' if fx else "")}
 </div>
 {pager}'''
 
@@ -514,7 +610,7 @@ def link(url, text):
     return f'<a href="{html.escape(url)}">{text}</a>' if url else text
 
 
-def fill(body, cfg, rels, todos, slug, tests):
+def fill(body, cfg, rels, todos, slug, tests, fixes):
     for t in re.findall(r"<!--\s*TODO\(owner\):(.*?)-->", body, re.S):
         todos.append(f"pages/{slug}.html: {' '.join(t.split())}")
     body = re.sub(r"\s*<!--\s*TODO\(owner\):.*?-->", "", body, flags=re.S)
@@ -530,7 +626,7 @@ def fill(body, cfg, rels, todos, slug, tests):
                              else f'<div class="say">{boot_svg(label="")}<p>not out yet. I\'m still being tested on real Macs.</p></div>',
         "{{HERO_ART}}": open(os.path.join(DATA, "hero-imac.svg")).read().strip(),
         "{{VERIFIED}}": verified_html(rels), "{{TEST_MEDIA}}": test_media_html(),
-        "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{SIGNERS}}": signers_html(),
+        "{{AREAS}}": areas_html(tests), "{{DOCS}}": docs_html(tests), "{{FIXES}}": fixes_html(fixes, tests, cfg), "{{SIGNERS}}": signers_html(),
         "{{FP_RELEASE}}": signers()[0][4] if signers() else FP_TBA, "{{ISO}}": html.escape(iso),
         "{{SOURCE}}": link(cfg["source"], "the source code") + ("" if cfg["source"] else " (published on GitHub with the first release)"),
         "{{IMAGE_REPO}}": link(cfg["image_repo"], "the image's build repository"),
@@ -666,7 +762,7 @@ def document(cfg, rels, slug, title, desc, body, tests=None):
 <footer class="site"><div class="bar">
   <p>OmaBoot? Live is made by the same people as <a href="{cfg["doesitomarchy"]}">DoesItOmarchy.com</a>.</p>
   <p><strong>A community site. Not officially affiliated with <a href="https://omarchy.org" rel="noopener">Omarchy</a> or the <a href="https://omarchy.org/foundation/" rel="noopener">Omacom Foundation</a>.</strong></p>
-  <p class="links"><a href="/download/">{download}</a> / <a href="/write/">Flash a USB stick</a> / <a href="/verify/">Verify</a> / <a href="/docs/">Docs</a> / <a href="/privacy/">Privacy</a> / <a href="https://status.boot.watch">boot.watch status</a>{source}</p>
+  <p class="links"><a href="/download/">{download}</a> / <a href="/write/">Flash a USB stick</a> / <a href="/verify/">Verify</a> / <a href="/fixes/">Fixes</a> / <a href="/docs/">Docs</a> / <a href="/privacy/">Privacy</a> / <a href="https://status.boot.watch">boot.watch status</a>{source}</p>
   <p class="keys"><a href="/verify/#keys">Signing keys</a> {keys}</p>
   <p class="fine">No cookies, no analytics, no third-party scripts.</p>
 </div></footer>
@@ -707,19 +803,20 @@ def build(out, releases_file, reports):
         shutil.rmtree(out)
     os.makedirs(out)
     tests = load_tests()
+    fixes = load_fixes()
     slugs = ["index"] + [s for s, _ in NAV] + FOOTER_ONLY
     pages = [(slug, *read_page(slug)) for slug in slugs + ["404"]]
     for slug, src in SUBPAGES.items():
         pages.append((slug, *read_page(src)))
     for c in tests["criteria"]:
-        pages.append((f"docs/{c['slug']}", c["title"], f"How OmaBoot? Live tests {c['title'].lower()} ({c['id']}) on an Intel Mac, how it decides, and how sure it is.", test_body(tests, c)))
+        pages.append((f"docs/{c['slug']}", c["title"], f"How OmaBoot? Live tests {c['title'].lower()} ({c['id']}) on an Intel Mac, how it decides, and how sure it is.", test_body(tests, c, fixes)))
     for r in rels:
         if r.get("report"):
             pages.append((f"releases/{r['version']}", f"{r['version']} difference report",
                           f"OmaBoot? {r['version']} compared with the official Omarchy {r['omarchy']} ISO: every package and file that differs, and why.",
-                          release_body(r, rels, cfg)))
+                          release_body(r, rels, cfg, fixes)))
     for slug, title, desc, body in pages:
-        doc = document(cfg, rels, slug, title, desc, fill(body, cfg, rels, todos, slug, tests), tests)
+        doc = document(cfg, rels, slug, title, desc, fill(body, cfg, rels, todos, slug, tests, fixes), tests)
         target = os.path.join(out, "404.html") if slug == "404" else os.path.join(out, "" if slug == "index" else slug, "index.html")
         os.makedirs(os.path.dirname(target), exist_ok=True)
         open(target, "w").write(doc)
