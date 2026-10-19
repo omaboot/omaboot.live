@@ -1,5 +1,5 @@
 {
- "_about": "What only omaboot.live says about each OmaBoot? fix, keyed by its ID in data/fixes.json (the registry's copy, tools/sync_fixes.py). The build fails when a fix has no entry here or an entry has no fix. short: who it's for, in a line, for the list at the top. problem: what goes wrong without it. detail: how it works, beyond the registry's own words. applies: when it acts in OmaBoot? Live. proof: how a run knows it took effect. tests: how the tests use it (optional). leaves: what it never touches. source: the files in the image's build repository. files: paths it adds or removes in the image, so a release's difference report can link here.",
+ "_about": "What only omaboot.live says about each OmaBoot? fix, keyed by its ID in data/fixes.json (the registry's copy, tools/sync_fixes.py). The build fails when a fix has no entry here or an entry has no fix. short: who it's for, in a line, for the list at the top. problem: what goes wrong without it. detail: how it works, beyond the registry's own words. applies: when it acts in OmaBoot? Live. proof: how a run knows it took effect. tests: how the tests use it (optional). leaves: what it never touches. source: the files in the image's build repository (an item's repo names another repository, such as boot-live). files: paths it adds or removes in the image, so a release's difference report can link here.",
  "omaboot.radeon-imac10-1-panel-clock": {
   "short": "The iMac10,1's built-in screen, distorted on the Radeon HD 4670 model.",
   "problem": "On the 21.5-inch iMac (Late 2009) with the Radeon HD 4670, the built-in screen splits into distorted parts as soon as radeon takes over. The only way to a picture is nomodeset, with no acceleration and nothing for the display tests to judge.",
@@ -73,5 +73,25 @@
   "files": [
    "usr/lib/systemd/system-sleep/omaboot-lid-wake"
   ]
+ },
+ "omaboot.thunderbolt3-usb-awake": {
+  "short": "USB 3 devices in a Mac's USB-C ports, never seen.",
+  "problem": "On the 2017 iMacs, a USB 3 stick plugged into either USB-C port isn't seen at all: there isn't a line about it in the kernel log. USB 2 devices, such as an iPhone on a Lightning cable, still work.",
+  "detail": [
+   "On these Macs, the USB 3 lines of the USB-C ports run to a USB controller inside the Thunderbolt 3 chip, and their USB 2 lines to the Mac's main controller. When nothing is plugged in, Linux powers the Thunderbolt 3 controller down.",
+   "Plugging a device in raises a PCIe wake signal (PME), which should power the controller back up. On a Mac, Linux skips the firmware handshake (_OSC) that would hand it that signal and takes every PCIe service but this one, so nothing answers the signal and the device waits unseen.",
+   "The USB-C test checks the controller's power state. When it has slept through 15 quiet seconds, the test sets the controller's power/control to on, which wakes it, and a device already in a port shows up within a second. When the test ends, the setting goes back to what it was."
+  ],
+  "applies": "Only in the USB-C test, with either kernel, and only after 15 seconds with nothing seen while a Thunderbolt 3 USB controller is asleep. The rest of the live system leaves the controller's power management as Omarchy has it.",
+  "proof": "The test's output gets a violet FIX line, “OmaBoot? Thunderbolt 3 USB wake fix in use”, and Boot asks for the plug again. In the report, each port seen afterwards is marked “seen once the Thunderbolt 3 USB controller was kept awake”, and a pass that rests on such a port goes in as partial, with the fix listed.",
+  "leaves": "Everything but that one controller's runtime power setting, which it changes in memory for one test and sets back after.",
+  "source": [
+   {
+    "repo": "boot-live",
+    "path": "internal/handson/ports.go",
+    "what": "the USB-C test, which applies the fix itself"
+   }
+  ],
+  "files": []
  }
 }
