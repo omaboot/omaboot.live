@@ -62,6 +62,12 @@
   <pre class="wrap" data-label="example"><code>catalog search imac10</code></pre>
 </section>
 
+<section class="cmd-box" id="cmd-plan">
+  <header><h3><code>plan</code> <code class="args">[check]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>The <a href="/docs/run-plan/">run plan</a> this run follows: its section, whether it runs unattended, and each answer it gives, with a Wi-Fi password never shown. When the plan isn't used, it says why. <code>plan check</code> reads <code>omaboot-plan.yaml</code> on the stick again and checks it, with the line and the fix for each problem, so you can correct a plan without restarting.</p>
+  <pre class="wrap" data-label="example"><code>plan check</code></pre>
+</section>
+
 <section class="cmd-box" id="cmd-smc">
   <header><h3><code>smc</code> <code class="args">&lt;key&gt;</code></h3><span class="ktag k-read">read-only</span></header>
   <p>One SMC key's type and raw bytes, read through the applesmc driver. The key is four characters. Nothing is ever written to the SMC. For the ambient light keys (<code>ALV0</code>, <code>ALV1</code>) it also shows the reading the driver's light file would give.</p>

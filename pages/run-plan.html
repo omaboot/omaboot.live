@@ -1,0 +1,310 @@
+<!-- title: Run plan -->
+<!-- description: omaboot-plan.yaml: a file on the stick that answers OmaBoot? Live's questions ahead, so a Mac can be tested with nobody at the keyboard. Every key, every value, and sample plans to copy. -->
+<div class="wrap page-head">
+<p class="crumbs"><a href="/docs/">Docs</a> / Run plan</p>
+<h1>Run plan</h1>
+<p class="lede">A run plan is a small file on the OmaBoot? stick. It answers the run's questions ahead: which Mac this is, how to connect, which tests to run and what to do with the report. A plan with no hands-on tests runs the whole test with nobody at the keyboard.</p>
+</div>
+<div class="wrap">
+
+<section class="ref" id="file">
+  <div class="ref-text">
+    <h2 id="the-file">The file</h2>
+    <div class="table-scroll"><table class="pkgs keys">
+      <tbody>
+        <tr><th scope="row">Name</th><td><code>omaboot-plan.yaml</code></td></tr>
+        <tr><th scope="row">Where</th><td>The root of the stick's <code>OMABOOT</code> partition. Plug the stick into any computer and it shows up as a drive named OMABOOT.</td></tr>
+        <tr><th scope="row">Format</th><td>YAML, <code>version: 1</code>.</td></tr>
+        <tr><th scope="row">Read</th><td>Once, when OmaBoot? Live starts, before Hello.</td></tr>
+        <tr><th scope="row">Without it</th><td>The run asks you, as always.</td></tr>
+      </tbody>
+    </table></div>
+    <p>The OMABOOT partition is where OmaBoot? Live keeps its reports. It's made the first time a run saves something: a report, a bug report or the sound setting (<kbd>M</kbd>). On a freshly written stick, run it once and save a copy of the report; then the drive is there for the plan.</p>
+    <p>The smallest plan names one Mac and answers one question. Everything it doesn't answer is asked as usual.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">omaboot-plan.yaml · the smallest plan</p>
+<pre data-copy="Copy the smallest plan"><code>version: 1
+macs:
+  - match: MacBookAir5,2
+    network: ethernet</code></pre>
+  </div>
+</section>
+
+<section class="ref" id="run">
+  <div class="ref-text">
+    <h2 id="how-a-run-uses-it">How a run uses it</h2>
+    <ol class="steps">
+      <li><b>Hello</b> says a plan was found, which section it uses and what it will do, then counts down 5 seconds. Press any key in that time to ignore the plan for this boot.</li>
+      <li><b>Which Mac</b> takes the plan's <code>configuration</code> when several fit. A copy of a run whose Mac didn't come back (a sleep that never woke) is picked up, so its fail stays on record.</li>
+      <li><b>Network</b> connects the plan's way.</li>
+      <li><b>Quick pass</b> runs as always. With nobody at the Mac, the graphics notice goes on at once.</li>
+      <li><b>Hands-on tests</b> open by themselves. A skipped test is recorded without opening; a setup test goes on 3 seconds after its result; a hands-on test waits for you.</li>
+      <li><b>Finish</b> sends and/or saves the report, then waits, powers off or restarts.</li>
+    </ol>
+    <p>A run is <b>unattended</b> when the Mac's section has no hands-on test. Otherwise it's <b>attended</b>: the plan answers what it can, and the run waits for you at the hands-on tests and at any question the plan couldn't answer.</p>
+    <p>A plan with a mistake isn't used at all. Hello shows each problem with its line and what to write instead, and the run asks you as usual.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">Hello, with a plan</p>
+<pre class="out wrap"><code>Run plan omaboot-plan.yaml: iMac18,3's section, unattended.
+  tests: 2 setup, the rest skipped
+  network: ethernet · report saved, then the screen waits
+  Starting in 4 s. Press any key to ignore the plan.</code></pre>
+    <p class="code-name">Hello, with a mistake</p>
+<pre class="out wrap"><code>Run plan omaboot-plan.yaml found, not used:
+  line 6: macs[1] (iMac18,3): tests: power.lid can't be setup
+    (only network.ethernet, network.wifi, ports.sd-card,
+    storage.optical can); make it hands-on or skip</code></pre>
+  </div>
+</section>
+
+<section class="ref" id="layout">
+  <div class="ref-text">
+    <h2 id="top-level">Top level</h2>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Key</th><th>Value</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>version</code></td><td><code>1</code></td><td>Required. The plan's format.</td></tr>
+        <tr><td><code>defaults</code></td><td>a section</td><td>Optional. Applies to every Mac, under its own section.</td></tr>
+        <tr><td><code>macs</code></td><td>a list of sections</td><td>Required, at least one. Each starts with <code>match</code>.</td></tr>
+      </tbody>
+    </table></div>
+    <p>A Mac uses the first section whose <code>match</code> is its model identifier (<code>iMac18,3</code>) or its configuration ID (<code>imac18-3-5k-2017-a</code>), ignoring case. A Mac with no section ignores the plan, and Hello says so. One stick can carry a plan for a whole bench of Macs.</p>
+    <p>A section's keys replace the same keys in <code>defaults</code>. Its <code>tests</code> are merged with the defaults' <code>tests</code>, its own entries winning.</p>
+    <p>Find a Mac's identifier and configuration ID on <a href="https://doesitomarchy.com/identify">DoesItOmarchy.com's Identify page</a>, or on Which Mac.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">omaboot-plan.yaml · defaults and two Macs</p>
+<pre data-copy="Copy the defaults and two Macs plan"><code>version: 1
+defaults:
+  network: ethernet
+  results: save
+  tests: {default: skip}
+macs:
+  - match: iMac18,3
+    tests: {network.ethernet: setup}
+  - match: MacBookAir5,2
+    network: offline
+    tests: {ports.sd-card: setup}</code></pre>
+  </div>
+</section>
+
+<section class="ref ref-wide" id="keys">
+  <div class="ref-text">
+    <h2 id="section-keys">Section keys</h2>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Key</th><th>Values</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>match</code></td><td>identifier or configuration ID</td><td>required in <code>macs</code></td><td>Which Mac the section is for. Not allowed in <code>defaults</code>.</td></tr>
+        <tr><td><code>configuration</code></td><td>a configuration ID</td><td>the match</td><td>Answers Which Mac when several configurations fit. When the Mac matches one exactly and it's another, the match is used and the report says so.</td></tr>
+        <tr><td><code>network</code></td><td>see <a href="#network">Network</a></td><td>whatever comes up</td><td>How the run connects.</td></tr>
+        <tr><td><code>results</code></td><td><code>send</code> · <code>save</code> · <code>both</code></td><td><code>save</code></td><td>Send the report to DoesItOmarchy.com, save a copy to the stick, or both. A report that can't be sent is saved instead.</td></tr>
+        <tr><td><code>tester</code></td><td>a handle</td><td>none</td><td>The name the report credits, as on Finish: letters, digits, <code>.</code> <code>_</code> <code>-</code>, at most 39.</td></tr>
+        <tr><td><code>finish</code></td><td><code>wait</code> · <code>power-off</code> · <code>reboot</code></td><td><code>wait</code></td><td>What happens after the report. Power-off and reboot come 5 seconds later. After a sleep that hung in this run, the screen waits instead.</td></tr>
+        <tr><td><code>bugreport</code></td><td>see <a href="#bug-reports">Bug reports</a></td><td><code>[on-problem]</code></td><td>When to save a bug report to the stick.</td></tr>
+        <tr><td><code>tests</code></td><td>see <a href="#tests">Tests</a></td><td>all hands-on</td><td>How each hands-on test runs.</td></tr>
+      </tbody>
+    </table></div>
+    <p>A report is sent only from an image with a report key, over a network, and never from a run changed in the console (the report's notes say why). The report's notes record that a plan ran, as in the example.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">the report's notes</p>
+<pre class="out wrap"><code>Run plan (omaboot-plan.yaml, version 1, section iMac18,3):
+unattended; tests: 2 setup, 15 skipped.</code></pre>
+  </div>
+</section>
+
+<section class="ref ref-wide" id="network">
+  <div class="ref-text">
+    <h2 id="network-h">Network</h2>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Value</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>ethernet</code></td><td>Waits up to 30 seconds for the cable's connection.</td></tr>
+        <tr><td><code>phone</code></td><td>Waits up to 30 seconds for a phone sharing its connection over USB.</td></tr>
+        <tr><td><code>offline</code></td><td>Tests offline. A report set to send is saved instead.</td></tr>
+        <tr><td><code>{wifi: {ssid: …, password: …}&#125;</code></td><td>Joins that Wi-Fi network: waits for the scan, scans once more if it isn't there, and gives the join 60 seconds. Leave out <code>password</code> for an open network; a WPA password is 8 to 63 characters.</td></tr>
+        <tr><td>not set</td><td>Whatever comes up by itself in 30 seconds. Nothing: offline when nobody's there, your choice when you are.</td></tr>
+      </tbody>
+    </table></div>
+    <p>When the plan's network doesn't come up, an unattended run goes on with what it has (offline if nothing), and the report says why. An attended run hands the Network screen to you.</p>
+    <p>The <b>password sits in plain text</b> on the stick, and a stick travels. OmaBoot? Live never puts it in a report, a bug report or the logs, and the console's <code>plan</code> shows it masked. In bug reports the network's name reads <code>(the plan's network)</code>. Prefer Ethernet where you can, and don't leave a plan with a password on a stick you lend.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">network: Wi-Fi</p>
+<pre data-copy="Copy the Wi-Fi network setting"><code>network:
+  wifi:
+    ssid: Studio
+    password: "correct horse battery staple"</code></pre>
+    <p class="code-name">network: an open Wi-Fi network</p>
+<pre data-copy="Copy the open Wi-Fi network setting"><code>network: {wifi: {ssid: Library}&#125;</code></pre>
+  </div>
+</section>
+
+<section class="ref ref-wide" id="tests">
+  <div class="ref-text">
+    <h2 id="tests-h">Tests</h2>
+    <p><code>tests</code> maps hands-on tests to a mode. <code>default</code> sets the mode of every test the plan doesn't name. The quick pass's checks always run and aren't listed.</p>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Mode</th><th>What happens</th><th>For</th></tr></thead>
+      <tbody>
+        <tr><td><code>hands-on</code></td><td>As without a plan: the test waits for you.</td><td>every test</td></tr>
+        <tr><td><code>skip</code></td><td>Not opened. Not tested, “skipped by the run plan”.</td><td>every test</td></tr>
+        <tr><td><code>setup</code></td><td>Its equipment is in place before power-on and the test decides alone. One that hasn't decided after twice its usual time (at least 60 seconds) goes in as not tested, with that reason.</td><td>the four below</td></tr>
+      </tbody>
+    </table></div>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Setup test</th><th>Have in place</th></tr></thead>
+      <tbody>
+        <tr><td><a href="/docs/network-ethernet/"><code>network.ethernet</code></a></td><td>A cable to a network with internet.</td></tr>
+        <tr><td><a href="/docs/ports-sd-card/"><code>ports.sd-card</code></a></td><td>A card in the slot. With OmaBoot?'s test file on it, the file is read and checked.</td></tr>
+        <tr><td><a href="/docs/storage-optical/"><code>storage.optical</code></a></td><td>A disc in the drive. It's read, then ejected.</td></tr>
+        <tr><td><a href="/docs/network-wifi/"><code>network.wifi</code></a></td><td>The plan's <code>network</code> set to a Wi-Fi network: joined on the Network step.</td></tr>
+      </tbody>
+    </table></div>
+    <p>The sleep test needs you to type the code it shows after waking, so it's <code>hands-on</code> or <code>skip</code>. Tests that need a plug-in during the test (USB, FireWire, Thunderbolt) are <code>hands-on</code> or <code>skip</code> for now.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">tests: setup, with a person for two</p>
+<pre data-copy="Copy the tests setting"><code>tests:
+  default: skip
+  network.ethernet: setup
+  ports.sd-card: setup
+  ports.usb-c: hands-on
+  power.sleep-wake: hands-on</code></pre>
+  </div>
+</section>
+
+<section class="ref" id="test-ids">
+  <div class="ref-text">
+    <h2 id="test-ids-h">Test IDs</h2>
+    <div class="table-scroll"><table class="pkgs ids">
+      <thead><tr><th>ID</th><th>Test</th></tr></thead>
+      <tbody>
+        <tr><td><a href="/docs/input-keyboard/"><code>input.keyboard</code></a></td><td>Keyboard</td></tr>
+        <tr><td><a href="/docs/input-trackpad/"><code>input.trackpad</code></a></td><td>Trackpad</td></tr>
+        <tr><td><a href="/docs/input-force-touch/"><code>input.force-touch</code></a></td><td>Force Touch</td></tr>
+        <tr><td><a href="/docs/display-native-resolution/"><code>display.native-resolution</code></a></td><td>Native resolution</td></tr>
+        <tr><td><a href="/docs/display-brightness/"><code>display.brightness</code></a></td><td>Display brightness</td></tr>
+        <tr><td><a href="/docs/input-keyboard-backlight/"><code>input.keyboard-backlight</code></a></td><td>Keyboard backlight</td></tr>
+        <tr><td><a href="/docs/input-keyboard-backlight/"><code>input.keyboard-backlight.keys</code></a></td><td>Key-light keys</td></tr>
+        <tr><td><a href="/docs/input-ambient-light-sensor/"><code>input.ambient-light-sensor</code></a></td><td>Ambient light sensor</td></tr>
+        <tr><td><a href="/docs/audio-speakers/"><code>audio.speakers</code></a></td><td>Speakers</td></tr>
+        <tr><td><a href="/docs/audio-microphone/"><code>audio.microphone</code></a></td><td>Microphone</td></tr>
+        <tr><td><a href="/docs/camera-builtin/"><code>camera.builtin</code></a></td><td>Camera</td></tr>
+        <tr><td><a href="/docs/network-bluetooth/"><code>network.bluetooth</code></a></td><td>Bluetooth</td></tr>
+        <tr><td><a href="/docs/network-wifi/"><code>network.wifi</code></a></td><td>Wi-Fi</td></tr>
+        <tr><td><a href="/docs/network-ethernet/"><code>network.ethernet</code></a></td><td>Ethernet</td></tr>
+        <tr><td><a href="/docs/power-charging/"><code>power.charging</code></a></td><td>Charging</td></tr>
+        <tr><td><a href="/docs/graphics-external-display/"><code>graphics.external-display</code></a></td><td>External display</td></tr>
+        <tr><td><a href="/docs/audio-display-out/"><code>audio.display-out</code></a></td><td>Monitor speakers</td></tr>
+        <tr><td><a href="/docs/audio-headphone/"><code>audio.headphone</code></a></td><td>Headphones</td></tr>
+        <tr><td><a href="/docs/ports-usb-a/"><code>ports.usb-a</code></a></td><td>USB-A ports</td></tr>
+        <tr><td><a href="/docs/ports-usb-c/"><code>ports.usb-c</code></a></td><td>USB-C ports</td></tr>
+        <tr><td><a href="/docs/ports-sd-card/"><code>ports.sd-card</code></a></td><td>SD card reader</td></tr>
+        <tr><td><a href="/docs/ports-thunderbolt/"><code>ports.thunderbolt</code></a></td><td>Thunderbolt</td></tr>
+        <tr><td><a href="/docs/ports-firewire/"><code>ports.firewire</code></a></td><td>FireWire</td></tr>
+        <tr><td><a href="/docs/storage-optical/"><code>storage.optical</code></a></td><td>Optical drive</td></tr>
+        <tr><td><a href="/docs/power-lid/"><code>power.lid</code></a></td><td>Lid</td></tr>
+        <tr><td><a href="/docs/power-sleep-wake/"><code>power.sleep-wake</code></a></td><td>Sleep and wake</td></tr>
+      </tbody>
+    </table></div>
+    <p>A Mac runs only the tests that apply to it; a plan may name the others, and they're left out there. The full log (<kbd>L</kbd>) shows each result's ID.</p>
+  </div>
+</section>
+
+<section class="ref" id="bug-reports">
+  <div class="ref-text">
+    <h2 id="bug-reports-h">Bug reports</h2>
+    <p>A bug report is the run's logs, the report and the screen, saved to the stick's <code>results/</code> as one file. It's never sent anywhere. <code>bugreport</code> takes a list of moments, or <code>none</code>.</p>
+    <div class="table-scroll"><table class="pkgs">
+      <thead><tr><th>Moment</th><th>Saved</th></tr></thead>
+      <tbody>
+        <tr><td><code>on-problem</code></td><td>When something goes wrong, as it happens: a test fails, a setup test runs out of time, the network falls back, or Which Mac has to guess. One for each kind of problem. The default.</td></tr>
+        <tr><td><code>after-quick</code></td><td>Once the quick pass is done, before the hands-on tests: a record of the Mac before anything is plugged in or put to sleep.</td></tr>
+        <tr><td><code>at-finish</code></td><td>After the report, with the whole run's logs.</td></tr>
+      </tbody>
+    </table></div>
+    <p>The report's notes list the bug reports saved before it.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">bugreport</p>
+<pre data-copy="Copy the bugreport setting"><code>bugreport: [after-quick, on-problem, at-finish]</code></pre>
+<pre data-copy="Copy the setting for no bug reports"><code>bugreport: none</code></pre>
+  </div>
+</section>
+
+<section class="ref" id="console">
+  <div class="ref-text">
+    <h2 id="console-h">Console and serial port</h2>
+    <p>Two <a href="/docs/console/#cmd-plan">console commands</a>: <code>plan</code> shows the plan in use, its password masked, and <code>plan check</code> reads the file on the stick again and checks it, with the line and the fix for each problem.</p>
+    <p>For a bench watched over a serial console, the run's last line also goes to the first serial port: what became of the report and the results' tally.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">serial port</p>
+<pre class="out wrap"><code>OMABOOT-PLAN: saved results/iMac18,3-20261019T230547Z.json;
+need Omarchy installed 2, not tested 15, passed 6</code></pre>
+  </div>
+</section>
+
+<section class="ref" id="samples">
+  <div class="ref-text">
+    <h2 id="samples-h">Sample plans</h2>
+    <p><b>A bench, unattended.</b> Each Mac has a cable in and a card in the slot before power-on. The report goes to DoesItOmarchy.com and the stick, and the Mac powers off.</p>
+    <p><b>Attended.</b> The plan answers the screens and skips what you don't have gear for; you sit in for the tests that need hands.</p>
+    <p><b>Every key.</b> The whole format in one file, with each value spelled out.</p>
+  </div>
+  <div class="ref-code">
+    <p class="code-name">omaboot-plan.yaml · a bench, unattended</p>
+<pre data-copy="Copy the bench plan"><code>version: 1
+defaults:
+  network: ethernet
+  results: both
+  tester: tester-1
+  finish: power-off
+  bugreport: [on-problem]
+  tests:
+    default: skip
+    network.ethernet: setup
+    ports.sd-card: setup
+macs:
+  - match: iMac18,3
+    configuration: imac18-3-5k-2017-a
+  - match: iMac18,1
+  - match: Macmini4,1
+    tests: {storage.optical: setup}</code></pre>
+    <p class="code-name">omaboot-plan.yaml · attended</p>
+<pre data-copy="Copy the attended plan"><code>version: 1
+macs:
+  - match: MacBookAir5,2
+    network:
+      wifi:
+        ssid: Studio
+        password: "correct horse battery staple"
+    results: save
+    tests:
+      default: hands-on
+      audio.display-out: skip
+      graphics.external-display: skip
+      ports.firewire: skip</code></pre>
+    <p class="code-name">omaboot-plan.yaml · every key</p>
+<pre data-copy="Copy the plan with every key"><code>version: 1                  # required
+defaults:                   # optional: every Mac, under its own section
+  network: ethernet         # ethernet · phone · offline · {wifi: {ssid: …, password: …}&#125;
+  results: save             # send · save · both
+  tester: tester-1              # letters, digits, . _ - (at most 39)
+  finish: wait              # wait · power-off · reboot
+  bugreport: [on-problem]   # after-quick · at-finish · on-problem, or none
+  tests:
+    default: hands-on       # hands-on · skip
+    network.ethernet: setup # setup: ethernet, sd-card, optical, wifi only
+macs:                       # required: at least one section
+  - match: iMac18,3         # a model identifier or a configuration ID
+    configuration: imac18-3-5k-2017-a
+    tests:
+      power.sleep-wake: skip</code></pre>
+  </div>
+</section>
+
+</div>

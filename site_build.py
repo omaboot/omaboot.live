@@ -57,8 +57,8 @@ OCTOCAT = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
 NAV = [("download", "Download"), ("verify", "Verify"), ("fixes", "Fixes"), ("docs", "Docs")]
 GUIDES = ["write", "privacy"]  # in Docs and the footer, not the bar; they count as Docs there
 FOOTER_ONLY = GUIDES
-SUBPAGES = {"docs/console": "console"}  # slug -> its pages/ file: pages that live under /docs/ but aren't tests
-WIDE = {"index", "download", "docs", "docs/console", "fixes"}  # pages that lay out their own width; the others read as prose
+SUBPAGES = {"docs/console": "console", "docs/run-plan": "run-plan"}  # slug -> its pages/ file: pages that live under /docs/ but aren't tests
+WIDE = {"index", "download", "docs", "docs/console", "docs/run-plan", "fixes"}  # pages that lay out their own width; the others read as prose
 
 # ── Palette (boot-wip/boot-live-proto.src.html, "OmaBoot?") ─────────────────────────────────
 # Boot's own colours stay the same in both themes: he's a character, not text.
@@ -657,7 +657,7 @@ def asset_version(name):
 
 # ── Docs index: a sidebar on every docs page (a disclosure on narrow screens) ───────────────
 DOCS_GUIDES = [("/docs/", "Docs overview"), ("/write/", "Flash a USB stick"), ("/verify/", "Verify a download"),
-               ("/docs/console/", "Console commands"), ("/docs/#bootwatch", "boot.watch"), ("/docs/#t2", "T2 Macs"),
+               ("/docs/console/", "Console commands"), ("/docs/run-plan/", "Run plan"), ("/docs/#bootwatch", "boot.watch"), ("/docs/#t2", "T2 Macs"),
                ("/privacy/", "What gets sent"), ("/docs/#faq", "FAQ")]
 
 
@@ -677,7 +677,7 @@ def page_toc(body):
 def docs_nav_inner(slug, tests, body):
     cur = "/docs/" if slug == "docs" else f"/{slug}/"
     out = []
-    toc = page_toc(body) if slug == "docs/console" else []
+    toc = page_toc(body) if slug in ("docs/console", "docs/run-plan") else []
     if toc:
         rows, chips = "", ""
         for i, t, lv in toc + [("", "", 0)]:  # commands under a heading go on one wrapped line, to keep the list short
