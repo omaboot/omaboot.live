@@ -63,9 +63,9 @@
 </section>
 
 <section class="cmd-box" id="cmd-plan">
-  <header><h3><code>plan</code> <code class="args">[check]</code></h3><span class="ktag k-read">read-only</span></header>
-  <p>The <a href="/docs/run-plan/">run plan</a> this run follows: its section, whether it runs unattended, and each answer it gives, with a Wi-Fi password never shown. When the plan isn't used, it says why. <code>plan check</code> reads <code>omaboot-plan.yaml</code> on the stick again and checks it, with the line and the fix for each problem, so you can correct a plan without restarting.</p>
-  <pre class="wrap" data-label="example"><code>plan check</code></pre>
+  <header><h3><code>plan</code> <code class="args">[check|run|stop]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>The <a href="/docs/run-plan/">run plan</a> this run follows: its section, whether it runs unattended, and each answer it gives, with a Wi-Fi password never shown. When the plan isn't used, it says why. <code>plan check</code> reads <code>omaboot-plan.yaml</code> on the stick again and checks it, with the line and the fix for each problem, so you can correct a plan without restarting. <code>plan run</code> starts the plan from the screen you're on (one with <code>start: console</code>, one ignored at Hello, or one you stopped), and <code>plan stop</code> hands the run back to you. Neither changes a result, so the run stays sendable; the report's notes say where the plan started and stopped.</p>
+  <pre class="wrap" data-label="example"><code>plan run</code></pre>
 </section>
 
 <section class="cmd-box" id="cmd-smc">
