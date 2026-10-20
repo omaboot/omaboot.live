@@ -99,7 +99,7 @@ macs:
         <tr><td><code>match</code></td><td>identifier or configuration ID</td><td>required in <code>macs</code></td><td>Which Mac the section is for. Not allowed in <code>defaults</code>.</td></tr>
         <tr><td><code>configuration</code></td><td>a configuration ID</td><td>the match</td><td>Answers Which Mac when several configurations fit. When the Mac matches one exactly and it's another, the match is used and the report says so.</td></tr>
         <tr><td><code>network</code></td><td>see <a href="#network">Network</a></td><td>whatever comes up</td><td>How the run connects.</td></tr>
-        <tr><td><code>results</code></td><td><code>send</code> · <code>save</code> · <code>both</code></td><td><code>save</code></td><td>Send the report to DoesItOmarchy.com, save a copy to the stick, or both. A report that can't be sent is saved instead.</td></tr>
+        <tr><td><code>results</code></td><td><code>send</code> · <code>save</code> · <code>both</code></td><td><code>save</code></td><td>Send the report to DoesItOmarchy.com, save a copy to the stick, or both. A report that can't be sent is saved instead. With <code>send</code> or <code>both</code> nobody sees the Send screen, so writing the plan is agreeing to <a href="https://doesitomarchy.com/api#consent">DoesItOmarchy.com's consent notice</a> for each report it sends; the report records that a run plan sent it.</td></tr>
         <tr><td><code>tester</code></td><td>a handle</td><td>none</td><td>The name the report credits, as on Finish: letters, digits, <code>.</code> <code>_</code> <code>-</code>, at most 39.</td></tr>
         <tr><td><code>finish</code></td><td><code>wait</code> · <code>power-off</code> · <code>reboot</code></td><td><code>wait</code></td><td>What happens after the report. Power-off and reboot come 5 seconds later. After a sleep that hung in this run, the screen waits instead.</td></tr>
         <tr><td><code>start</code></td><td><code>auto</code> · <code>console</code></td><td><code>auto</code></td><td>How the plan starts: <code>auto</code> counts down on Hello; <code>console</code> waits for <code>plan run</code>, so you can plug in a setup test's cable or card after the Mac has started.</td></tr>
@@ -218,7 +218,7 @@ unattended; tests: 2 setup, 15 skipped.</code></pre>
 <section class="ref" id="bug-reports">
   <div class="ref-text">
     <h2 id="bug-reports-h">Bug reports</h2>
-    <p>A bug report is the run's logs, the report and the screen, saved to the stick's <code>results/</code> as one file. It's never sent anywhere. <code>bugreport</code> takes a list of moments, or <code>none</code>.</p>
+    <p>A bug report is the run's logs, the report and the screen, saved to the stick's <code>results/</code> as one file. <code>bugreport</code> takes a list of moments, or <code>none</code>. To send them to OmaBoot? as well, scrubbed (<a href="/privacy/#bug-reports">what happens to them</a>), write <code>{when: [moments], send: true}</code>.</p>
     <div class="table-scroll"><table class="pkgs">
       <thead><tr><th>Moment</th><th>Saved</th></tr></thead>
       <tbody>
@@ -232,6 +232,7 @@ unattended; tests: 2 setup, 15 skipped.</code></pre>
   <div class="ref-code">
     <p class="code-name">bugreport</p>
 <pre data-copy="Copy the bugreport setting"><code>bugreport: [after-quick, on-problem, at-finish]</code></pre>
+<pre data-copy="Copy the setting that sends them too"><code>bugreport: {when: [on-problem, at-finish], send: true}</code></pre>
 <pre data-copy="Copy the setting for no bug reports"><code>bugreport: none</code></pre>
   </div>
 </section>
@@ -298,7 +299,7 @@ defaults:                   # optional: every Mac, under its own section
   tester: tester-1              # letters, digits, . _ - (at most 39)
   finish: wait              # wait · power-off · reboot
   start: auto               # auto (Hello counts down) · console (waits for plan run)
-  bugreport: [on-problem]   # after-quick · at-finish · on-problem, or none
+  bugreport: [on-problem]   # after-quick · at-finish · on-problem, or none; {when: […], send: true} sends them
   tests:
     default: hands-on       # hands-on · skip
     network.ethernet: setup # setup: ethernet, sd-card, optical, wifi only
