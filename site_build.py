@@ -482,6 +482,51 @@ def fixes_for(fixes, ids):
     return [f for f in fixes["fixes"] if set(f.get("criteria", [])) & set(ids)]
 
 
+APPLIES_INLINE = 6  # Macs an Applies to lists outright; more fold under a summary
+
+
+def applies_html(fixes, f):
+    """A fix's Applies to: the Macs it applies to, a configuration's release each, one line per Mac. Up to
+    APPLIES_INLINE Macs are listed outright; more get a summary line (how many, the years, per line) and the
+    list folded under it, by line, newest first. A rule-picked list says its rule first."""
+    e = html.escape
+    ids = f["applies_to"]
+    tested = set(f.get("tested_on", []))
+    macs = {}  # (identifier, release name) -> its configurations here, in catalog order
+    for i in ids:
+        c = fixes["configs"][i]
+        macs.setdefault((c["identifier"], c["name"]), []).append(i)
+
+    def item(key, cs, short=False):
+        c = fixes["configs"][cs[0]]
+        url = c["url"] if len(cs) == 1 else c["url"].split("#")[0]
+        # under its line's heading, "MacBook Pro (15-inch, 2017)" says only "15-inch, 2017"
+        name = c["name"][len(c["line"]) + 2:-1] if short and c["name"].startswith(c["line"] + " (") and c["name"].endswith(")") else c["name"]
+        more = f' <span class="quiet">· {len(cs)} configurations</span>' if len(cs) > 1 else ""
+        tag = ' <span class="tested">tested</span>' if tested & set(cs) else ""
+        return f'<li><a href="{e(url)}">{e(name)} [{e(c["identifier"])}]</a>{more}{tag}</li>'
+
+    rule = f'<p class="applies-rule">{e(f["applies_rule"])}</p>' if f.get("applies_rule") else ""
+    if len(macs) <= APPLIES_INLINE:
+        body = f'<ul class="applies-list">{"".join(item(k, cs) for k, cs in macs.items())}</ul>'
+    else:
+        years = [fixes["configs"][cs[0]]["year"] for cs in macs.values() if fixes["configs"][cs[0]]["year"]]
+        span = f", {min(years)}–{max(years)}" if years and min(years) != max(years) else (f", {years[0]}" if years else "")
+        lines = {}
+        for k, cs in macs.items():
+            lines.setdefault(fixes["configs"][cs[0]]["line"], []).append((k, cs))
+        order = sorted(lines, key=lambda ln: -len(lines[ln]))
+        n_tested = len(tested & set(ids))
+        summary = (f'{len(ids)} configurations on {len(macs)} Macs{span}' + (f' · tested on {n_tested}' if n_tested else "")
+                   + '<span class="applies-lines">' + " · ".join(f'{e(ln)} {len(lines[ln])}' for ln in order) + '</span>')
+        newest = lambda kc: -(fixes["configs"][kc[1][0]]["year"] or 0)
+        groups = "".join(f'<section><h4>{e(ln)}</h4><ul class="applies-list">{"".join(item(k, cs, True) for k, cs in sorted(lines[ln], key=newest))}</ul></section>'
+                         for ln in order)
+        body = (f'<p class="applies-sum">{summary}</p>'
+                f'<details class="applies-all"><summary>Show all {len(macs)} Macs</summary><div class="applies-groups">{groups}</div></details>')
+    return f'<div class="fix-applies"><span class="fix-label">Applies to</span><div>{rule}{body}</div></div>'
+
+
 def fixes_html(fixes, tests, cfg):
     """/fixes/: a tile per fix to jump to it, then each fix as a panel: the problem, what it changes
     and how it works side by side, and its facts in three groups (where it acts, what a run shows,
@@ -523,8 +568,7 @@ def fixes_html(fixes, tests, cfg):
                          + f' {e(s["what"])}</span>' for s in d["source"])
         if not repo and any(not s.get("repo") for s in d["source"]):
             source += '<span class="quiet">In the image\'s build repository, published with the first release.</span>'
-        groups = [("Where it acts", [("Hardware", e(f["hardware"])), ("Devices", devices), ("Configurations", cfgs(f.get("configs", []))),
-                                     ("In OmaBoot? Live", e(d["applies"]))]),
+        groups = [("Where it acts", [("Hardware", e(f["hardware"])), ("Devices", devices), ("In OmaBoot? Live", e(d["applies"]))]),
                   ("What a run shows", [("How a run shows it", e(d["proof"])), ("Tests", e(d.get("tests", ""))),
                                         ("Results it can change", ", ".join(crit(i) for i in f.get("criteria", []))), ("Leaves alone", e(d["leaves"])),
                                         ("Tested on", cfgs(f.get("tested_on", [])))]),
@@ -535,8 +579,8 @@ def fixes_html(fixes, tests, cfg):
         out.append(f'<article class="fix" id="{e(f["id"])}">'
                    f'<header class="fix-head"><span class="fix-num">{n:02d}</span><h2>{e(f["name"])}</h2><code>{e(f["id"])}</code></header>'
                    f'<div class="fix-levels"><span class="fix-label">Lives in</span><ul>'
-                   + "".join(f'<li>{level_chip(levels, p["level"], i == 0)}<span>{e(p["what"])}</span></li>' for i, p in enumerate(f["levels"])) + '</ul></div>'
-                   f'<p class="fix-problem"><span class="fix-label">Without it</span>{e(d["problem"])}</p>'
+                   + "".join(f'<li>{level_chip(levels, p["level"], i == 0)}<span>{e(p["what"])}</span></li>' for i, p in enumerate(f["levels"])) + '</ul></div>' + applies_html(fixes, f)
+                   + f'<p class="fix-problem"><span class="fix-label">Without it</span>{e(d["problem"])}</p>'
                    f'<div class="fix-text"><section><h3>What it changes</h3><p>{e(f["changes"])}</p></section><section><h3>How it works</h3>{how}</section></div>'
                    f'<div class="fix-facts">{facts}</div>'
                    f'<p class="fix-out"><a href="{e(f["url"])}">This fix on DoesItOmarchy.com<span aria-hidden="true"> ↗</span></a></p></article>')
