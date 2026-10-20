@@ -729,3 +729,25 @@ ol.bw-steps b { color: var(--ink); font-weight: 400; }
 .guide { text-align: center; padding-block: 24px 22px; }
 .guide-icon { display: block; width: 40px; height: 40px; margin: 0 auto 14px; fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .guide:hover .guide-icon { stroke: var(--ink); }
+
+/* Run plan (/docs/run-plan/): reference sections like DoesItOmarchy.com's API docs, the text on
+   the left and the samples (each copyable) on the right; stacked on narrow screens */
+.ref { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 32px; padding-block: 28px; border-top: 1px solid var(--line); }
+.ref:first-child { border-top: 0; padding-top: 8px; }
+.ref-text > :first-child { margin-top: 0; }
+.ref-text > p { max-width: 68ch; }
+.ref-code { min-width: 0; }
+.ref-code pre { margin-bottom: 20px; }
+.code-name { margin: 0 0 6px; font: 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+table.keys th { width: 9em; text-transform: none; letter-spacing: 0; font-size: 13px; }
+table.ids td:first-child { white-space: nowrap; }
+ol.steps { padding-left: 1.3em; display: grid; gap: 6px; max-width: 68ch; }
+ol.steps li { color: var(--quiet); }
+ol.steps b { color: var(--ink); font-weight: 600; }
+@media (min-width: 1180px) {
+  .ref { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .ref-code { padding-top: 34px; }
+  /* a section that's mostly a wide table: the table across, its samples under it */
+  .ref.ref-wide { grid-template-columns: minmax(0, 1fr); }
+  .ref-wide .ref-code { padding-top: 8px; max-width: 760px; }
+}
