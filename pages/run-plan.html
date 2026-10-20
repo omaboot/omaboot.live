@@ -35,7 +35,7 @@ macs:
   <div class="ref-text">
     <h2 id="how-a-run-uses-it">How a run uses it</h2>
     <ol class="steps">
-      <li><b>Hello</b> says a plan was found, which section it uses and what it will do, then counts down 5 seconds. Press any key in that time to ignore the plan for this boot.</li>
+      <li><b>Hello</b> says a plan was found, which section it uses and what it will do, then counts down 10 seconds. Press any key in that time to ignore the plan for this boot. With <code>start: console</code> it doesn't count down: it waits until you type <code>plan run</code> in the console.</li>
       <li><b>Which Mac</b> takes the plan's <code>configuration</code> when several fit. A copy of a run whose Mac didn't come back (a sleep that never woke) is picked up, so its fail stays on record.</li>
       <li><b>Network</b> connects the plan's way.</li>
       <li><b>Quick pass</b> runs as always. With nobody at the Mac, the graphics notice goes on at once.</li>
@@ -102,6 +102,7 @@ macs:
         <tr><td><code>results</code></td><td><code>send</code> · <code>save</code> · <code>both</code></td><td><code>save</code></td><td>Send the report to DoesItOmarchy.com, save a copy to the stick, or both. A report that can't be sent is saved instead.</td></tr>
         <tr><td><code>tester</code></td><td>a handle</td><td>none</td><td>The name the report credits, as on Finish: letters, digits, <code>.</code> <code>_</code> <code>-</code>, at most 39.</td></tr>
         <tr><td><code>finish</code></td><td><code>wait</code> · <code>power-off</code> · <code>reboot</code></td><td><code>wait</code></td><td>What happens after the report. Power-off and reboot come 5 seconds later. After a sleep that hung in this run, the screen waits instead.</td></tr>
+        <tr><td><code>start</code></td><td><code>auto</code> · <code>console</code></td><td><code>auto</code></td><td>How the plan starts: <code>auto</code> counts down on Hello; <code>console</code> waits for <code>plan run</code>, so you can plug in a setup test's cable or card after the Mac has started.</td></tr>
         <tr><td><code>bugreport</code></td><td>see <a href="#bug-reports">Bug reports</a></td><td><code>[on-problem]</code></td><td>When to save a bug report to the stick.</td></tr>
         <tr><td><code>tests</code></td><td>see <a href="#tests">Tests</a></td><td>all hands-on</td><td>How each hands-on test runs.</td></tr>
       </tbody>
@@ -238,7 +239,8 @@ unattended; tests: 2 setup, 15 skipped.</code></pre>
 <section class="ref" id="console">
   <div class="ref-text">
     <h2 id="console-h">Console and serial port</h2>
-    <p>Two <a href="/docs/console/#cmd-plan">console commands</a>: <code>plan</code> shows the plan in use, its password masked, and <code>plan check</code> reads the file on the stick again and checks it, with the line and the fix for each problem.</p>
+    <p>The <a href="/docs/console/#cmd-plan">console's <code>plan</code> command</a>: <code>plan</code> shows the plan in use, its password masked, and <code>plan check</code> reads the file on the stick again and checks it, with the line and the fix for each problem.</p>
+    <p><code>plan run</code> starts the plan from the screen the run is on: a plan with <code>start: console</code>, one ignored at Hello, or one you stopped. It reads the file again first and won't start one with problems. Steps already behind you stay as they are: tests that have a result keep it, and a configuration or network you set by hand stays, noted in the report. <code>plan stop</code> hands the run back to you on the screen it's on. The report's notes say where the plan started and stopped.</p>
     <p>For a bench watched over a serial console, the run's last line also goes to the first serial port: what became of the report and the results' tally.</p>
   </div>
   <div class="ref-code">
@@ -295,6 +297,7 @@ defaults:                   # optional: every Mac, under its own section
   results: save             # send · save · both
   tester: tester-1              # letters, digits, . _ - (at most 39)
   finish: wait              # wait · power-off · reboot
+  start: auto               # auto (Hello counts down) · console (waits for plan run)
   bugreport: [on-problem]   # after-quick · at-finish · on-problem, or none
   tests:
     default: hands-on       # hands-on · skip
