@@ -5,10 +5,8 @@
   "omarchy": "https://omarchy.org",
 
   "repo": "https://github.com/omaboot",
-  "source": "",
-  "source_TODO": "Owner: set to https://github.com/omaboot once the org and its public repos exist. While empty, the site names the source without linking it.",
-  "image_repo": "",
-  "image_repo_TODO": "Owner: set to https://github.com/omaboot/omaboot-iso once public (the release keys are in it, so Verify can point there as a second place to compare them).",
+  "source": "https://github.com/omaboot",
+  "image_repo": "https://github.com/omaboot/omaboot-iso",
   "contact": "",
   "contact_TODO": "Owner: where to report a bad signature or a problem (an issues page or an address). While empty, Verify and Privacy leave the sentence out."
 }
