@@ -1,5 +1,5 @@
 <!-- title: Privacy -->
-<!-- description: What an OmaBoot? Live report contains, what it never contains, and what happens when you send it to DoesItOmarchy.com. -->
+<!-- description: What an OmaBoot? Live report contains, what it never contains, what happens when you send it to DoesItOmarchy.com, and what happens to a bug report you send to OmaBoot?. -->
 <h1>Privacy</h1>
 <p class="lede">Your report leaves the Mac only when you press <b>Send</b>, and the Send screen lists what goes. Before that, the network tests move test data and nothing else.</p>
 
@@ -10,6 +10,7 @@
     <li>Never sent: serial numbers, network addresses, Wi-Fi names, pictures, recordings, or anything from your disks.</li>
     <li>Before you send: only random test data to boot.watch, and one check for the newest Mac list.</li>
     <li>Once sent and accepted, your results and your Mac's hardware details are public on {{DIO}}, which doesn't record your IP address.</li>
+    <li>A bug report goes to OmaBoot? only when you send it. It's scrubbed first, stays private, is read by OmaBoot?'s maintainers and an AI model, and is deleted after 180 days.</li>
     <li>This website: no cookies, no analytics.</li>
   </ul>
 </section>
@@ -37,6 +38,17 @@
 <p>The report goes over HTTPS to {{DIO}}. A person reviews it before it counts toward a verdict or appears on the site.</p>
 <p>Once a maintainer accepts it, its results, your Mac's hardware details and the name to credit, if you gave one, are public on {{DIO}}. The full report may be published later, once {{DIO}} has removed anything personal it finds in it. {{DIO}} doesn't record the sender's IP address. More in <a href="https://doesitomarchy.com/privacy">its privacy policy</a>.</p>
 <p>A report you save instead stays on the stick until you delete it.</p>
+
+<h2 id="bug-reports">Bug reports</h2>
+<p>A bug report is for when something goes wrong: the run's logs, its report, the screen as text, the boot messages, the network tests' log and, after a sleep test, its kernel lines. The console's <code>bugreport</code> saves one to the stick. It goes to OmaBoot? only when you type <code>bugreport send</code>, or when a <a href="/docs/run-plan/#bug-reports">run plan</a> you wrote says <code>send: true</code>. It never goes to {{DIO}}.</p>
+<ul>
+  <li><b>Scrubbed before it leaves:</b> serial numbers, network (MAC) and IP addresses, the computer's name, user names and e-mail addresses are removed on the Mac, and again when it arrives, with the same rules {{DIO}} uses for reports. The copy on the stick stays whole, so look before you share that one.</li>
+  <li><b>What else goes with it:</b> the OmaBoot? Live version, the Mac's model and configuration, and your report's code if you sent the report. To limit how many a Mac can send in a day, the Mac also sends a one-way hash of its firmware's ID; boot.watch keeps that in memory until the end of the day and never stores it.</li>
+  <li><b>Where it goes:</b> to boot.watch, which passes it on to a private storage bucket (Cloudflare R2) and keeps nothing of it. The bucket deletes it after 180 days. It is never published.</li>
+  <li><b>Who reads it:</b> OmaBoot?'s maintainers, and an AI model (Anthropic's Claude) that looks through bug reports for problems many Macs share.</li>
+  <li><b>Its code:</b> once it's sent, the console shows a code like <code>B-7K2Q-9MXD</code>. Quote it when you tell us about the problem, and we can find your report.</li>
+  <li><b>Offline,</b> it waits on the stick, and the console offers to send it from the next run that's online.</li>
+</ul>
 
 <h2>This website</h2>
 <p>No cookies, no analytics, no third-party scripts or fonts. It's served by Cloudflare Pages, and the downloads by Cloudflare R2. Cloudflare handles each request, your IP address included, under <a href="https://www.cloudflare.com/privacypolicy/">its privacy policy</a>; we haven't turned on any of its analytics, and nothing on the site sets a cookie.</p>

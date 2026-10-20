@@ -90,8 +90,10 @@
 </section>
 
 <section class="cmd-box" id="cmd-bugreport">
-  <header><h3><code>bugreport</code></h3><span class="ktag k-read">read-only</span></header>
-  <p>Saves the full log, the kernel log, the report, a text copy of the screen and the boot messages (plus every nap's kernel lines, if you ran <code>sleepcheck</code>) as one archive in the <code>results</code> folder of external storage. It is saved to the stick only and is never sent anywhere. It <b>may contain serial numbers</b>, so look before you share it.</p>
+  <header><h3><code>bugreport</code> <code class="args">[send]</code></h3><span class="ktag k-read">read-only</span></header>
+  <p>Saves the full log, the kernel log, the report, a text copy of the screen and the boot messages (plus every nap's kernel lines, if you ran <code>sleepcheck</code>) as one archive in the <code>results</code> folder of external storage. The copy on the stick <b>may contain serial numbers</b>, so look before you share it.</p>
+  <p><code>bugreport send</code> sends this run's bug reports, and any waiting on the stick, to OmaBoot? to look into. Each is scrubbed of serial numbers, addresses and names first, kept private and deleted after 180 days (<a href="/privacy/#bug-reports">what happens to it</a>). The console shows each one's code, such as <code>B-7K2Q-9MXD</code>: quote it when you tell us about the problem. Offline, it waits on the stick for the next online run.</p>
+  <pre class="wrap" data-label="example"><code>bugreport send</code></pre>
 </section>
 
 <section class="cmd-box" id="cmd-testfile">
