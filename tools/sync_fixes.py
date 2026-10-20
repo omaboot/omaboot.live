@@ -16,6 +16,7 @@ an outage shouldn't block a deploy. Stdlib only.
 """
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -23,6 +24,9 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(HERE, "data", "fixes.json")
 SITE = json.load(open(os.path.join(HERE, "data", "site.json")))["doesitomarchy"]
 SNAPSHOT = SITE + "/api/v1/snapshot"
+# a model identifier's family, as Apple names the line
+LINES = {"iMac": "iMac", "iMacPro": "iMac Pro", "MacBook": "MacBook", "MacBookAir": "MacBook Air", "MacBookPro": "MacBook Pro",
+         "Macmini": "Mac mini", "MacPro": "Mac Pro", "Xserve": "Xserve"}
 
 
 def fetch():
@@ -36,13 +40,19 @@ def extract(snap):
     fixes = snap["fixes"]
     if "fix_levels" not in snap or any("levels" not in f for f in fixes):
         sys.exit("sync_fixes: the snapshot has no fix levels: DoesItOmarchy.com needs the release that adds them (fix_levels)")
-    want = {c for f in fixes for c in f.get("configs", []) + f.get("tested_on", [])}
+    if any("applies_to" not in f for f in fixes):
+        sys.exit("sync_fixes: the snapshot's fixes have no applies_to: DoesItOmarchy.com needs the release that adds it")
+    want = {c for f in fixes for c in f.get("configs", []) + f.get("tested_on", []) + f["applies_to"]}
     configs = {}
     for m in snap["match"]["macs"]:
         for r in m["releases"]:
             for c in r["configs"]:
                 if c["id"] in want:
+                    # line and year group a long Applies to list: the identifier's family, the year in the release's name
+                    year = re.search(r"\b(?:19|20)\d\d\b", r["name"])
                     configs[c["id"]] = {"name": r["name"], "identifier": m["identifier"],
+                                        "line": LINES[re.match(r"[A-Za-z]+", m["identifier"]).group()],
+                                        "year": int(year.group()) if year else None,
                                         "url": f'{SITE}/mac/{m["identifier"].replace(",", "-")}#cfg-{c["id"]}'}
     missing = want - set(configs)
     if missing:

@@ -599,6 +599,21 @@ ul.exact-points b { display: block; color: var(--ink); font-weight: 400; }
 .fix-levels .fix-label { margin: 0; }
 .fix-levels ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 28px; }
 .fix-levels li { margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 14px; color: var(--quiet); }
+.fix-applies { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; padding-block: 14px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--quiet); }
+.fix-applies > .fix-label { margin: 0; flex: none; }
+.fix-applies > div { flex: 1 1 320px; min-width: 0; display: grid; gap: 6px; }
+.fix-applies p { margin: 0; max-width: none; }
+.applies-rule { color: var(--ink); }
+.applies-lines { display: block; color: var(--faint); font: 12px/1.6 var(--mono); }
+.applies-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 28px; }
+.applies-list li { margin: 0; }
+.applies-all summary { cursor: pointer; width: fit-content; font: 13px/1.6 var(--mono); color: var(--accent); }
+.applies-groups { columns: 250px; column-gap: 28px; margin-top: 10px; }
+.applies-groups section { margin-bottom: 14px; }
+.applies-groups h4 { break-after: avoid; margin: 0 0 4px; font: 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.applies-groups .applies-list { display: block; }
+.applies-groups .applies-list li { margin-bottom: 4px; break-inside: avoid; }
+.fix-applies .tested { font: 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line); border-radius: 2px; padding: 2px 5px; margin-left: 6px; white-space: nowrap; }
 .lvl-map { margin-top: 40px; }
 .lvl-map h2 { margin: 0 0 6px; }
 .lvl-rows { list-style: none; margin: 16px 0 0; padding: 1px; display: grid; gap: 1px; }
