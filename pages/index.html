@@ -85,17 +85,31 @@
   </div>
 </section>
 
-<section class="band">
+<section class="band" id="screens">
   <div class="wrap">
     <div class="section-head">
-      <h2>A sampling of test screens</h2>
-      <p>Each test explains what to do, shows what the Mac sees, and decides from what it measured.</p>
+      <h2>The test screens</h2>
+      <p>Seven steps, one screen each. Every test explains what to do, shows what the Mac sees, and decides from what it measured.</p>
     </div>
+    <ol class="rail" aria-label="The seven steps of a run">
+      <li><span class="rail-n">1</span><b>Hello</b><p>Disks set read-only, the keyboard layout read from macOS.</p><a class="rail-fig" href="#fig-1">Fig. 1</a></li>
+      <li><span class="rail-n">2</span><b>Which Mac</b><p>Board and chip IDs find your exact configuration.</p><a class="rail-fig" href="#fig-2">Fig. 2</a></li>
+      <li><span class="rail-n">3</span><b>Network</b><p>Wi-Fi, Ethernet or a phone. Offline works too.</p><a class="rail-fig" href="#bootwatch">boot.watch</a></li>
+      <li class="rail-auto"><span class="rail-n">4</span><b>Quick pass</b><p>About 2 minutes, no input: graphics, power, heat, fans.</p><a class="rail-fig" href="#fig-3">Fig. 3</a></li>
+      <li class="rail-auto"><span class="rail-n">5</span><b>Quick results</b><p>Whether it boots Omarchy, and what passed.</p><a class="rail-fig" href="#fig-4">Fig. 4</a></li>
+      <li><span class="rail-n">6</span><b>Hands on</b><p>Keyboard, ports, sound, sleep and more, with you. Skip any.</p><a class="rail-fig" href="#fig-5">Figs. 5–7</a></li>
+      <li><span class="rail-n">7</span><b>Finish</b><p>Send the report, or save it to the stick.</p><a class="rail-fig" href="#fig-8">Fig. 8</a></li>
+    </ol>
+    <p class="rail-key"><span class="rail-sw"></span>runs on its own</p>
     <div class="gallery">
-      <figure><img src="/assets/screens/quick-pass.png" width="1440" height="896" alt="The quick pass, with Boot saying the applesmc fix is on and the fans answer, and the list of checks with their results." loading="lazy"><figcaption><b>Quick pass.</b> Two minutes, no input: graphics, display, battery, sound chip, temperatures and fans.</figcaption></figure>
-      <figure><img src="/assets/screens/wifi.png" width="1440" height="896" alt="The Wi-Fi test sending data between the Mac and boot.watch, with the joined network and the bytes received so far." loading="lazy"><figcaption><b>Wi-Fi.</b> Real data to boot.watch and back, every byte checked.</figcaption></figure>
-      <figure><img src="/assets/screens/microphone.png" width="1440" height="896" alt="The microphone test: a sound level bar and five notes, D5 E5 C5 C4 G4, with the third note playing." loading="lazy"><figcaption><b>Microphone.</b> The Mac plays five notes and has to hear them back.</figcaption></figure>
-      <figure><img src="/assets/screens/finish.png" width="1440" height="896" alt="The finish screen: Boot and a big pixel Yay!, the totals, and the choices to submit the report or save a copy to the stick." loading="lazy"><figcaption><b>Finish.</b> Send the report, or save a copy to the stick for later.</figcaption></figure>
+      <figure id="fig-1"><a class="shot" href="/assets/screens/hello.png"><img src="/assets/screens/hello.png" width="1440" height="896" alt="Hello: Boot introduces itself next to the OmaBoot? wordmark, the internal disk shown read-only with 0 bytes written, and the setup list: disk read-only, Omarchy 4.0.6, the image, the console font, the keyboard layout from macOS and the catalog snapshot." loading="lazy"></a><figcaption><b>Hello.</b> Before anything else, every internal disk is set read-only. The keyboard layout comes from macOS; Tab changes it.</figcaption></figure>
+      <figure id="fig-2"><a class="shot" href="/assets/screens/which-mac.png"><img src="/assets/screens/which-mac.png" width="1440" height="896" alt="Which Mac: the catalog snapshot list with MacBook Air (13-inch, Mid 2012) highlighted, a row of Mac outlines with the MacBook Air picked, a timeline from 2006 to 2020, and this Mac's board, CPU, GPU and Wi-Fi IDs joined to the catalog's configuration." loading="lazy"></a><figcaption><b>Which Mac.</b> The board ID and the chips' IDs, matched against the catalog, offline. When two configurations fit, you pick.</figcaption></figure>
+      <figure id="fig-3"><a class="shot" href="/assets/screens/quick-heat.png"><img src="/assets/screens/quick-heat.png" width="1440" height="896" alt="The quick pass's heat test: pixel flames around a big 71 °C, Boot saying it's making the CPU sweat for a bit, and the checks so far with their results." loading="lazy"></a><figcaption><b>Quick pass.</b> Twenty seconds of load heat the CPU: the temperature sensors and the fans have to answer.</figcaption></figure>
+      <figure id="fig-4"><a class="shot" href="/assets/screens/console.png"><img src="/assets/screens/console.png" width="1440" height="896" alt="The console open over Quick results, with four commands and their output: ids lists the Mac's model, board, CPU, GPU, Wi-Fi and audio IDs; why thermal.fans gives the fans' evidence and the applesmc fix; catalog mac shows the configuration and the IDs it matched; note adds a note to the report." loading="lazy"></a><figcaption><b>Console.</b> Open it on any screen: the Mac's hardware IDs, the evidence behind any result, the catalog, a note for the report.</figcaption></figure>
+      <figure id="fig-5"><a class="shot" href="/assets/screens/keyboard.png"><img src="/assets/screens/keyboard.png" width="1440" height="896" alt="The keyboard test: the MacBook Air's keyboard drawn key by key, with the keys pressed so far lit, and 35 of 77 keys seen." loading="lazy"></a><figcaption><b>Keyboard.</b> Every key once, on a drawing of this Mac's own keyboard: ANSI, ISO or JIS.</figcaption></figure>
+      <figure id="fig-6"><a class="shot" href="/assets/screens/usb-ports.png"><img src="/assets/screens/usb-ports.png" width="1440" height="896" alt="The USB-A ports test: the Mac's left and right sides drawn with their ports, the next port to try ringed, and what was seen so far: the OmaBoot? drive on the left USB 3 port." loading="lazy"></a><figcaption><b>USB ports.</b> A map of this Mac's ports. Plug into the ringed one, and it has to move data.</figcaption></figure>
+      <figure id="fig-7"><a class="shot" href="/assets/screens/microphone.png"><img src="/assets/screens/microphone.png" width="1440" height="896" alt="The microphone test: a sound level bar and five notes, D5 E5 C5 C4 G4, with the second note heard." loading="lazy"></a><figcaption><b>Microphone.</b> The Mac plays five notes and has to hear them back.</figcaption></figure>
+      <figure id="fig-8"><a class="shot" href="/assets/screens/finish.png"><img src="/assets/screens/finish.png" width="1440" height="896" alt="The finish screen after sending: Boot and a big pixel Thanks!, the totals, and the report received by DoesItOmarchy.com, pending review, with its page's address." loading="lazy"></a><figcaption><b>Finish.</b> The report goes to {{DIO}}, where a person reviews it. Offline? Save it to the stick.</figcaption></figure>
     </div>
   </div>
 </section>

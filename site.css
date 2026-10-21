@@ -5,15 +5,16 @@
    for the site's accent, Boot in cyan, amber, the editions' disk colours. Green is only ever a
    passed test, and the editions' feature rows (owner, 2026-10-16): nowhere else.
    Type (owner's picks, 2026-10-16): iA Writer Quattro for headings, as Nerd Fonts' iM Writing
-   Quattro (OFL; renamed there for the licence's reserved names); Commit Mono (OFL) for everything
-   else: reading text like the console's, and the small uppercase labels. Both self-hosted, cut to
-   Latin. The wordmark is BigBlue Terminal's letters as outlines (data/wordmark.json). */
+   Quattro (OFL; renamed there for the licence's reserved names); for everything else, reading
+   text like the console's and the small uppercase labels, Nordwand Mono (OFL; owner, 2026-10-21),
+   from our fork github.com/omaboot/Nordwand-Mono, which adds the · “ ” ‹ › ← ↑ ↓ ↗ ⌘ ✓ the site
+   uses. Both self-hosted, cut to Latin; the build fails on a character the body font lacks. The wordmark is BigBlue Terminal's letters as outlines (data/wordmark.json). */
 @font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 /* the Omarchy wordmark as a font (github.com/markcuda/Omarchy-Font, MIT): only for the word Omarchy in the hero */
 @font-face { font-family: "Omarchy Font"; src: url("/assets/fonts/OmarchyFont.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
+@font-face { font-family: "Nordwand Mono"; src: url("/assets/fonts/NordwandMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Nordwand Mono"; src: url("/assets/fonts/NordwandMono-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 
 :root {
   /* surfaces and strokes: the console's black, raised in small cool steps */
@@ -50,7 +51,7 @@
   --ed-omarchy: #4fa6ad; --ed-omarchy-hi: #8fe3e8;
   --ed-lab: #c98f3a;     --ed-lab-hi: #ffd479;
   --sans: "iM Writing Quattro", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: "Commit Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --mono: "Nordwand Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --gutter: 20px;
   color-scheme: dark;
 }
@@ -233,13 +234,69 @@ ol.flow li::before { content: "Step " counter(step, decimal-leading-zero); displ
 ol.flow h3 { margin: 0 0 6px; }
 ol.flow p { margin: 0; color: var(--quiet); }
 
-/* Screens: numbered like figures */
-.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; counter-reset: fig; }
-.gallery figure { margin: 0; min-width: 0; counter-increment: fig; }
-.gallery img { display: block; width: 100%; border-radius: 2px; border: 1px solid var(--line-2); background: var(--bg); }
+/* The test screens: the run's seven steps as the screens' own rail, then the figures */
+ol.rail { list-style: none; padding: 0; margin: 0 0 10px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+ol.rail li { position: relative; display: flex; flex-direction: column; align-items: flex-start; margin: 0; padding: 0 14px 0 0; min-width: 0; }
+ol.rail li::before { content: ""; position: absolute; left: 0; right: 0; top: 13px; border-top: 3px double var(--line-3); }
+ol.rail li:first-child::before { left: 14px; }
+ol.rail li:last-child::before { right: calc(100% - 14px); }
+ol.rail li.rail-auto::before { border-top-color: var(--accent-deep); }
+.rail-n { position: relative; display: grid; place-items: center; width: 28px; height: 28px; margin-bottom: 14px; font: 400 13px/1 var(--mono); color: var(--accent); background: var(--bg); border: 1px solid var(--accent-deep); border-radius: 2px; }
+.rail-auto .rail-n { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+ol.rail b { display: block; margin-bottom: 4px; font: 400 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+ol.rail p { margin: 0 0 6px; font-size: 13px; line-height: 1.55; color: var(--quiet); }
+ol.rail a.rail-fig { margin-top: auto; }
+a.rail-fig { font: 12px/1.4 var(--mono); letter-spacing: 0.04em; color: var(--faint); }
+a.rail-fig:hover { color: var(--accent); }
+.rail-key { display: flex; align-items: center; gap: 8px; margin: 0 0 32px; font: 12px/1 var(--mono); letter-spacing: 0.04em; color: var(--faint); }
+.rail-sw { display: inline-block; width: 12px; height: 12px; background: var(--accent); border-radius: 2px; }
+@media (max-width: 900px) {
+  ol.rail { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  ol.rail li { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 16px; padding: 0 0 18px; }
+  ol.rail a.rail-fig { margin-top: 0; justify-self: start; }
+  ol.rail li::before { top: 0; bottom: 0; left: 13px; right: auto; border-top: 0; border-left: 3px double var(--line-3); }
+  ol.rail li.rail-auto::before { border-left-color: var(--accent-deep); }
+  ol.rail li:first-child::before { left: 13px; top: 14px; }
+  ol.rail li:last-child::before { right: auto; bottom: auto; height: 14px; }
+  .rail-n { grid-row: span 3; margin: 0; }
+  ol.rail b { padding-top: 6px; }
+}
+
+/* Screens: numbered like figures, four to a row; each opens larger (gallery.js) */
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px 24px; counter-reset: fig; }
+@media (max-width: 1000px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .gallery { grid-template-columns: minmax(0, 1fr); } }
+.gallery figure { margin: 0; min-width: 0; counter-increment: fig; scroll-margin-top: 24px; }
+.gallery a.shot { display: block; border-radius: 2px; cursor: zoom-in; }
+.gallery img { display: block; width: 100%; height: auto; border-radius: 2px; border: 1px solid var(--line-2); background: var(--bg); transition: border-color 0.15s; }
+.gallery a.shot:hover img { border-color: var(--accent-deep); }
 .gallery figcaption { margin-top: 12px; font-size: 14px; color: var(--quiet); }
-.gallery figcaption b { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; color: var(--ink); font: 400 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.gallery figcaption b, .lb-cap b { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; color: var(--ink); font: 400 12px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
 .gallery figcaption b::before { content: "Fig. " counter(fig); color: var(--faint); border: 1px solid var(--line-2); padding: 2px 6px; }
+.lb-cap b::before { content: attr(data-fig); color: var(--faint); border: 1px solid var(--line-2); padding: 2px 6px; }
+
+/* The lightbox: one screen at a time, its figure's caption, ← → to the others */
+html.lb-open { overflow: hidden; }
+dialog.lightbox { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--ink); overflow: hidden; }
+dialog.lightbox::backdrop { background: rgba(5, 6, 8, 0.97); }
+.lb-stage { box-sizing: border-box; height: 100%; display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; gap: 16px; padding: 64px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.lb-fig { margin: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; max-height: 100%; }
+.lb-fig img { display: block; max-width: min(100%, 1440px); max-height: calc(100dvh - 210px); width: auto; height: auto; border: 1px solid var(--line-2); border-radius: 2px; background: var(--bg); }
+.lb-cap { width: 100%; max-width: 72ch; font-size: 14px; color: var(--quiet); }
+.lb-cap p { margin: 0; }
+.lb-count { font: 12px/1 var(--mono); letter-spacing: 0.06em; color: var(--faint); margin-left: auto; }
+.lightbox button { display: grid; place-items: center; padding: 0; color: var(--ink); background: var(--panel); border: 1px solid var(--line-2); border-radius: 2px; cursor: pointer; }
+.lightbox button:hover { border-color: var(--accent); color: var(--accent); }
+.lightbox button svg { width: 28px; height: 28px; }
+.lb-prev, .lb-next { width: 56px; height: 56px; justify-self: center; }
+.lb-close { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); width: 48px; height: 48px; }
+.lb-close svg { width: 30px; height: 30px; }
+@media (max-width: 760px) {
+  .lb-stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; padding-top: 72px; }
+  .lb-fig { grid-column: 1 / -1; grid-row: 1; }
+  .lb-fig img { max-height: calc(100dvh - 300px); }
+  .lb-prev, .lb-next { grid-row: 2; }
+}
 
 /* What it tests: area tiles with one square per criterion */
 .area-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
@@ -670,7 +727,7 @@ table.pkgs td:first-child code { color: var(--ink); }
 .dgroup details:first-of-type { border-top: 1px solid var(--line); }
 .dgroup summary { cursor: pointer; padding: 10px 14px; display: flex; gap: 14px; align-items: baseline; color: var(--ink); font-size: 14px; }
 .dgroup summary .cnt { flex: none; min-width: 4.5em; font: 13px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
-/* what happened to a group's files: a sign and a word (+ added, − removed, ~ changed), not a colour */
+/* what happened to a group's files: a sign and a word (+ added, - removed, ~ changed), not a colour */
 .dgroup summary .chgs { margin-left: auto; flex: none; font: 12px var(--mono); color: var(--quiet); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .chg-total { margin: 0 0 6px; font: 14px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .dgroup summary { flex-wrap: wrap; } .dgroup summary .chgs { margin-left: 0; width: 100%; } }

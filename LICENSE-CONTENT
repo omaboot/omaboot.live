@@ -17,5 +17,5 @@ under CC BY-SA 4.0 instead: https://creativecommons.org/licenses/by-sa/4.0/
 Attribute them to "The OmaBoot? authors" with a link to https://omaboot.live.
 
 Everything else (site_build.py's code, site.css, tools/, the Makefile) is under the MIT licence
-in LICENSE. The fonts in assets/fonts/ keep their own licences: Commit Mono and iM Writing Quattro
+in LICENSE. The fonts in assets/fonts/ keep their own licences: Nordwand Mono (our cut of the omaboot fork) and iM Writing Quattro
 under the SIL Open Font License 1.1 (their files beside them), the Omarchy Font under MIT. data/allowed_signers holds the release keys' public halves.
