@@ -1,4 +1,4 @@
-// omaboot.live's only script: a copy button on each command block (owner, 2026-10-16), as on
+// omaboot.live's copy buttons, one on each command block (owner, 2026-10-16), as on
 // DoesItOmarchy.com's Identify page. Blocks marked class="out" (what a command should print) get
 // none. A block's data-copy names what it copies (the key fingerprints on Verify). Without this
 // script the commands are plain text, still selectable.

@@ -790,6 +790,7 @@ def document(cfg, rels, slug, title, desc, body, tests=None):
     download = f'Download {html.escape(latest["version"])}' if latest else "Download"
     keys = ("".join(f'<span>{"Release" if c == "omaboot-release" else "Backup"} key <code>{fp}</code></span>' for _, _, _, c, fp in signers())
             or f'<span>Release keys: {FP_TBA}</span>')
+    gallery_js = f'<script src="/gallery.js?v={asset_version("gallery.js")}" defer></script>\n' if 'class="gallery"' in body else ""
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -801,7 +802,7 @@ def document(cfg, rels, slug, title, desc, body, tests=None):
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css?v={asset_version("site.css")}">
 <script src="/copy.js?v={asset_version("copy.js")}" defer></script>
-<meta name="color-scheme" content="dark">
+{gallery_js}<meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{cfg["name"]}">
 <meta property="og:title" content="{html.escape(full_title)}">
@@ -848,6 +849,9 @@ HEADERS = """/*
 /copy.js
   Cache-Control: public, max-age=3600
 
+/gallery.js
+  Cache-Control: public, max-age=3600
+
 /assets/*
   Cache-Control: public, max-age=86400
 
@@ -886,6 +890,7 @@ def build(out, releases_file, reports):
     slugs += list(SUBPAGES) + [f"docs/{c['slug']}" for c in tests["criteria"]] + [f"releases/{r['version']}" for r in rels if r.get("report")]
     shutil.copy2(os.path.join(HERE, "site.css"), os.path.join(out, "site.css"))
     shutil.copy2(os.path.join(HERE, "copy.js"), os.path.join(out, "copy.js"))
+    shutil.copy2(os.path.join(HERE, "gallery.js"), os.path.join(out, "gallery.js"))
     shutil.copytree(os.path.join(HERE, "assets"), os.path.join(out, "assets"))
     shutil.copy2(os.path.join(DATA, "allowed_signers"), os.path.join(out, "allowed_signers"))
     open(os.path.join(out, "favicon.svg"), "w").write(FAVICON)
