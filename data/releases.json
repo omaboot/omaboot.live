@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "version": "4.0.6-1",
+    "edition": "live",
+    "date": "2026-10-21",
+    "omarchy": "4.0.6",
+    "iso": "https://get.omaboot.live/live/v4.0.6-1/omaboot-live-4.0.6-1.iso",
+    "size": 1239171072,
+    "sha256": "9fa10049d56dc19e4e9912d1db19414a1448febf31fef41626cc63c8d29fac26",
+    "sha256sums": "https://get.omaboot.live/live/v4.0.6-1/SHA256SUMS",
+    "signature": "https://get.omaboot.live/live/v4.0.6-1/SHA256SUMS.sig",
+    "packages": "https://get.omaboot.live/live/v4.0.6-1/packages.tsv",
+    "difference": "https://get.omaboot.live/live/v4.0.6-1/diff-report.md",
+    "build_log": "https://github.com/omaboot/omaboot-iso/actions/runs/39528256118",
+    "notes": "The first release: OmaBoot? Live on Omarchy 4.0.6, with boot-live 1.0.0."
+  }
+]
