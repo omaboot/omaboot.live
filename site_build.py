@@ -333,11 +333,11 @@ CATEGORY = {"unexplained": ("Unexplained", "No rule accounts for it. A release w
             "package-removed": ("Files of packages we leave out", "Packages on the official ISO that the live edition doesn't carry, so their files aren't there."),
             "package": ("Files of packages", "The files of packages the live edition adds or leaves out.")}
 # what happened to a group's files, as each one's line says it: a sign and a word, never a colour
-CHANGE = (("added", "+", "added"), ("removed", "−", "removed"), ("changed", "~", "changed"))
+CHANGE = (("added", "+", "added"), ("removed", "-", "removed"), ("changed", "~", "changed"))
 
 
 def changes_html(ch):
-    """'+ 65 added · − 28,794 removed', the kinds a group has, largest first."""
+    """'+ 65 added · - 28,794 removed', the kinds a group has, largest first."""
     parts = sorted(((n, sign, word) for k, sign, word in CHANGE if (n := ch.get(k, 0))), reverse=True)
     return " · ".join(f'<span class="chg chg-{word}">{sign} {n:,} {word}</span>' for n, sign, word in parts)
 AREA = {"iso": "ISO 9660", "esp": "EFI partition", "rootfs": "root file system"}
@@ -945,7 +945,31 @@ def check(out):
             for frag in re.findall(r'href="#([^"]+)"', doc):
                 if f'id="{frag}"' not in doc:
                     problems.append(f"{rel}: missing anchor #{frag}")
+            # every character shown must be the body font's: no fallback font, ever (owner, 2026-10-21)
+            text = html.unescape(re.sub(r"<[^>]+>", "", re.sub(r"<(svg|script|style)\b.*?</\1>", "", doc, flags=re.S)))
+            missing = sorted({c for c in text if c not in "\n\r\t" and ord(c) not in BODY_FONT_CHARS})
+            if missing:
+                problems.append(f"{rel}: the body font has no " + " ".join(f"{c} (U+{ord(c):04X})" for c in missing))
+    css = open(os.path.join(HERE, "site.css")).read()
+    for shown in re.findall(r'content:\s*"([^"]*)"', css):
+        for c in shown:
+            if ord(c) not in BODY_FONT_CHARS:
+                problems.append(f"site.css: the body font has no {c} (U+{ord(c):04X}) in content: \"{shown}\"")
     return problems
+
+
+def body_font_chars():
+    """The code points the body font's cut covers (data/body-font-chars.txt, written by its make web-cut)."""
+    cps = set()
+    for line in open(os.path.join(DATA, "body-font-chars.txt")):
+        line = line.split("#")[0].strip()
+        if line:
+            a, _, b = line.partition("-")
+            cps.update(range(int(a, 16), int(b or a, 16) + 1))
+    return cps
+
+
+BODY_FONT_CHARS = body_font_chars()
 
 
 def serve(out, port):

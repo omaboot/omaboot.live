@@ -5,15 +5,16 @@
    for the site's accent, Boot in cyan, amber, the editions' disk colours. Green is only ever a
    passed test, and the editions' feature rows (owner, 2026-10-16): nowhere else.
    Type (owner's picks, 2026-10-16): iA Writer Quattro for headings, as Nerd Fonts' iM Writing
-   Quattro (OFL; renamed there for the licence's reserved names); Commit Mono (OFL) for everything
-   else: reading text like the console's, and the small uppercase labels. Both self-hosted, cut to
-   Latin. The wordmark is BigBlue Terminal's letters as outlines (data/wordmark.json). */
+   Quattro (OFL; renamed there for the licence's reserved names); for everything else, reading
+   text like the console's and the small uppercase labels, Nordwand Mono (OFL; owner, 2026-10-21),
+   from our fork github.com/omaboot/Nordwand-Mono, which adds the · “ ” ‹ › ← ↑ ↓ ↗ ⌘ ✓ the site
+   uses. Both self-hosted, cut to Latin; the build fails on a character the body font lacks. The wordmark is BigBlue Terminal's letters as outlines (data/wordmark.json). */
 @font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "iM Writing Quattro"; src: url("/assets/fonts/iMWritingQuattro-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 /* the Omarchy wordmark as a font (github.com/markcuda/Omarchy-Font, MIT): only for the word Omarchy in the hero */
 @font-face { font-family: "Omarchy Font"; src: url("/assets/fonts/OmarchyFont.ttf") format("truetype"); font-display: swap; }
-@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Commit Mono"; src: url("/assets/fonts/CommitMono-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
+@font-face { font-family: "Nordwand Mono"; src: url("/assets/fonts/NordwandMono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Nordwand Mono"; src: url("/assets/fonts/NordwandMono-700.woff2") format("woff2"); font-weight: 600 800; font-display: swap; }
 
 :root {
   /* surfaces and strokes: the console's black, raised in small cool steps */
@@ -50,7 +51,7 @@
   --ed-omarchy: #4fa6ad; --ed-omarchy-hi: #8fe3e8;
   --ed-lab: #c98f3a;     --ed-lab-hi: #ffd479;
   --sans: "iM Writing Quattro", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: "Commit Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --mono: "Nordwand Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --gutter: 20px;
   color-scheme: dark;
 }
@@ -726,7 +727,7 @@ table.pkgs td:first-child code { color: var(--ink); }
 .dgroup details:first-of-type { border-top: 1px solid var(--line); }
 .dgroup summary { cursor: pointer; padding: 10px 14px; display: flex; gap: 14px; align-items: baseline; color: var(--ink); font-size: 14px; }
 .dgroup summary .cnt { flex: none; min-width: 4.5em; font: 13px var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
-/* what happened to a group's files: a sign and a word (+ added, − removed, ~ changed), not a colour */
+/* what happened to a group's files: a sign and a word (+ added, - removed, ~ changed), not a colour */
 .dgroup summary .chgs { margin-left: auto; flex: none; font: 12px var(--mono); color: var(--quiet); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .chg-total { margin: 0 0 6px; font: 14px var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .dgroup summary { flex-wrap: wrap; } .dgroup summary .chgs { margin-left: 0; width: 100%; } }
