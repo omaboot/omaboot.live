@@ -7,6 +7,9 @@ DIR holds the files the image build publishes with every release (all in its sig
 build-info.json, packages.tsv and diff-report.tsv (or diff-report.tsv.gz). Only public facts are
 kept: no build-machine paths, and the CI run only when it's on GitHub.
 
+Each group counts its files by what happened to them (added, removed, changed), and the files of
+packages are split by whether the package is one we add or one the live edition leaves out.
+
 Groups of differing files with more than LIST_MAX paths (the files of an added package, say) keep
 their count only; the full list stays in diff-report.tsv.gz, linked from the page.
 """
@@ -51,17 +54,25 @@ def main(argv):
             changes.append({"name": path, "change": difference.split()[0], "version": version_of.get(path, ("", ""))[0],
                             "repo": version_of.get(path, ("", ""))[1], "official_file": official.get(path, False), "why": explanation})
             continue
-        g = groups.setdefault((category, explanation), {"category": category, "explanation": explanation, "count": 0, "files": []})
+        if category == "package":  # a package's files: one we add, or one the live edition leaves out
+            category = {"added": "package-added", "removed": "package-removed"}.get(explanation.split()[0], category)
+        kind = difference.split()[0].rstrip(":")  # added, removed, or "changed: content" and the like
+        g = groups.setdefault((category, explanation), {"category": category, "explanation": explanation, "count": 0,
+                                                        "changes": {"added": 0, "removed": 0, "changed": 0}, "files": []})
         g["count"] += 1
+        g["changes"][kind if kind in ("added", "removed") else "changed"] += 1
         g["files"].append([area, path, difference])
     for g in groups.values():
         if g["count"] > LIST_MAX:
             g["files"] = []
-    order = {"unexplained": 0, "ours": 1, "generated": 2, "package": 3}
+    order = {"unexplained": 0, "ours": 1, "generated": 2, "package-added": 3, "package-removed": 4, "package": 5}
     group_list = sorted(groups.values(), key=lambda g: (order.get(g["category"], 9), -g["count"], g["explanation"]))
     by_cat = {}
+    file_changes = {"added": 0, "removed": 0, "changed": 0}
     for g in group_list:
         by_cat[g["category"]] = by_cat.get(g["category"], 0) + g["count"]
+        for k, n in g["changes"].items():
+            file_changes[k] += n
 
     oi = info.get("official_iso", {})
     bl = info.get("boot_live", {})
@@ -79,7 +90,8 @@ def main(argv):
                    "added": sum(1 for c in changes if c["change"] == "added"),
                    "removed": sum(1 for c in changes if c["change"] == "removed"),
                    "changed": sum(1 for c in changes if c["change"] not in ("added", "removed")),
-                   "files_differing": sum(by_cat.values()), "unexplained": by_cat.get("unexplained", 0), "by_category": by_cat},
+                   "files_differing": sum(by_cat.values()), "unexplained": by_cat.get("unexplained", 0), "by_category": by_cat,
+                   "file_changes": file_changes},
         "package_changes": changes,
         "groups": group_list,
     }

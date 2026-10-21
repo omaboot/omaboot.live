@@ -329,7 +329,17 @@ def editions_html(rels, full=False):
 CATEGORY = {"unexplained": ("Unexplained", "No rule accounts for it. A release with any doesn't ship."),
             "ours": ("Ours", "An OmaBoot? change: the tester, patched modules, the boot menu, splash and settings."),
             "generated": ("Generated at build time", "Written while the image is built, from the installed packages: caches, indexes, keyrings, the initramfs."),
-            "package": ("Files of a package we add", "The files the added packages install.")}
+            "package-added": ("Files of packages we add", "What the packages the live edition adds install: each package and why it's there is in the table above."),
+            "package-removed": ("Files of packages we leave out", "Packages on the official ISO that the live edition doesn't carry, so their files aren't there."),
+            "package": ("Files of packages", "The files of packages the live edition adds or leaves out.")}
+# what happened to a group's files, as each one's line says it: a sign and a word, never a colour
+CHANGE = (("added", "+", "added"), ("removed", "−", "removed"), ("changed", "~", "changed"))
+
+
+def changes_html(ch):
+    """'+ 65 added · − 28,794 removed', the kinds a group has, largest first."""
+    parts = sorted(((n, sign, word) for k, sign, word in CHANGE if (n := ch.get(k, 0))), reverse=True)
+    return " · ".join(f'<span class="chg chg-{word}">{sign} {n:,} {word}</span>' for n, sign, word in parts)
 AREA = {"iso": "ISO 9660", "esp": "EFI partition", "rootfs": "root file system"}
 
 
@@ -355,10 +365,12 @@ def release_body(r, rels, cfg, fixes):
                       f'<td>{"the official ISO\'s own file" if p["official_file"] else e(p["repo"]) + " (not on the official ISO)"}</td><td>{e(p["why"])}</td></tr>'
                       for p in rep["package_changes"])
     groups = []
-    for cat in ("unexplained", "ours", "generated", "package"):
+    for cat in ("unexplained", "ours", "generated", "package-added", "package-removed", "package"):
         gs = [g for g in rep["groups"] if g["category"] == cat]
         title, what = CATEGORY[cat]
         n = sum(g["count"] for g in gs)
+        if not gs and cat.startswith("package"):
+            continue
         if not gs:
             groups.append(f'<section class="dgroup" id="{cat}"><h3>{title} <span class="n">0</span></h3><p class="quiet">{what}</p><p>None.</p></section>')
             continue
@@ -368,7 +380,11 @@ def release_body(r, rels, cfg, fixes):
             body = f'<ul class="paths">{files}</ul>' if files else '<p class="quiet">Too many to list here: every path is in <code>diff-report.tsv.gz</code>.</p>'
             fx = [f for f in fixes["fixes"] if any(fnmatch.fnmatch(p, pat) for _, p, _ in g["files"] for pat in f["detail"]["files"])]
             fx = f' <span class="fix-refs">({", ".join(fix_link(f) for f in fx)})</span>' if fx else ""
-            items.append(f'<details><summary><span class="cnt">{g["count"]:,}</span>{e(g["explanation"])}{fx}</summary>{body}</details>')
+            chg = f'<span class="chgs">{changes_html(g["changes"])}</span>' if g.get("changes") else ""
+            why = g["explanation"]
+            if cat in ("package-added", "package-removed"):  # the heading says added or left out: the package and its reason
+                why = why.split(" ", 2)[-1].removesuffix(": package not in the live edition")
+            items.append(f'<details><summary><span class="cnt">{g["count"]:,}</span>{e(why)}{fx}{chg}</summary>{body}</details>')
         groups.append(f'<section class="dgroup" id="{cat}"><h3>{title} <span class="n">{n:,}</span></h3><p class="quiet">{what}</p>{"".join(items)}</section>')
     same = [x for x in rels if x.get("edition", "live") == r.get("edition", "live")]
     i = same.index(r)
@@ -389,6 +405,7 @@ def release_body(r, rels, cfg, fixes):
 <div class="table-scroll"><table class="pkgs"><thead><tr><th>Package</th><th>Change</th><th>Version</th><th>File</th><th>Why</th></tr></thead><tbody>{changes}</tbody></table></div>
 <p class="quiet">Every other package is the same version as on the official ISO. {c["official_files"]:,} of the {c["packages"]:,} packages are the official ISO's very files (same SHA-256), checked one by one in <code>packages.tsv</code>.</p>
 <h2 id="files">Files that differ: {c["files_differing"]:,}</h2>
+{f'<p class="chg-total">{changes_html(c["file_changes"])}</p>' if c.get("file_changes") else ""}
 <p class="quiet">Across the ISO 9660 volume, the EFI partition and the root file system. Compared: type, permissions, owner, size, content (SHA-256) and link targets; timestamps are ignored. Open a group to see its files.</p>
 {"".join(groups)}
 <h2 id="originals">The original files</h2>
@@ -905,8 +922,10 @@ def check(out):
             path = os.path.join(root, f)
             doc = open(path).read()
             rel = os.path.relpath(path, out)
+            # file paths in <code> are data, not copy (a difference report lists usr/share/doc/*/TODO)
+            prose = re.sub(r"<code>[^<]*</code>", "", doc)
             for bad in ("{{", "}}", "TODO", "example.com", "lorem"):
-                if bad in doc:
+                if bad in (doc if bad in ("{{", "}}") else prose):
                     problems.append(f"{rel}: contains {bad!r}")
             for href in re.findall(r'(?:href|src)="([^"]+)"', doc):
                 if href.startswith(("https://", "#", "mailto:")):
