@@ -1,5 +1,20 @@
 [
   {
+    "version": "4.0.6-2",
+    "edition": "live",
+    "date": "2026-11-20",
+    "omarchy": "4.0.6",
+    "iso": "https://get.omaboot.live/live/v4.0.6-2/omaboot-live-4.0.6-2.iso",
+    "size": 1239171072,
+    "sha256": "ec9c4db7678ecb2feacc9fbe13472a4f7c33be1ad1a7068cba7e6c3136b74091",
+    "sha256sums": "https://get.omaboot.live/live/v4.0.6-2/SHA256SUMS",
+    "signature": "https://get.omaboot.live/live/v4.0.6-2/SHA256SUMS.sig",
+    "packages": "https://get.omaboot.live/live/v4.0.6-2/packages.tsv",
+    "difference": "https://get.omaboot.live/live/v4.0.6-2/diff-report.md",
+    "build_log": "https://github.com/omaboot/omaboot-iso/actions/runs/41108178558",
+    "notes": "A security update: the live image no longer starts an SSH server (CVE-2026-98432), so it listens on no network port. Same packages as 4.0.6-1."
+  },
+  {
     "version": "4.0.6-1",
     "edition": "live",
     "date": "2026-10-21",
